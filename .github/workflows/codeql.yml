@@ -80,7 +80,7 @@ jobs:
         run: |
           sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           test -x "$sdkmanager"
-          "$sdkmanager" --install "platforms;android-37" "build-tools;37.0.0"
+          "$sdkmanager" --install "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Build Kotlin/JVM and Android sources
         if: matrix.language == 'java-kotlin'
