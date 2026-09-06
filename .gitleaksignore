@@ -4,3 +4,7 @@
 9e46a4ecbd9f0a42b57b497d17a440ea060eafec:sdk/python/tests/test_crypto.py:generic-api-key:54
 9e46a4ecbd9f0a42b57b497d17a440ea060eafec:sdk/python/tests/test_crypto.py:generic-api-key:56
 9e46a4ecbd9f0a42b57b497d17a440ea060eafec:sdk/python/tests/test_crypto.py:generic-api-key:58
+
+# Public canonical API hashes in the first revision of the qualification record.
+0400ec613be2fac4e7b57c34d3950e6b3891f5ba:spec/qualification-record.yaml:generic-api-key:4
+0400ec613be2fac4e7b57c34d3950e6b3891f5ba:spec/qualification-record.yaml:generic-api-key:46

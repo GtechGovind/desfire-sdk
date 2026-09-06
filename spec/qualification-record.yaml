@@ -1,7 +1,7 @@
 schema_version: 2
 software_revision: pending-commit
 qualification_state: pending_commit_bound_evidence
-api_manifest_sha256: 15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596
+canonical_manifest_sha256: 15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596
 abi_exports: 125
 api_operations: 120
 evidence:
@@ -43,7 +43,7 @@ evidence:
     status: outside_selected_key_provider_scope
 historical_evidence:
   source_revision: 0f3b733f27b73481f7b26cf9402b64ccfc256e75
-  api_manifest_sha256: f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff
+  manifest_sha256: f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff
   summary: docs/testing.md
   date: 2026-09-06
 release_claim: blocked_pending_commit_bound_software_hardware_and_signed_artifact_evidence

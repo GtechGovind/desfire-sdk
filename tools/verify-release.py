@@ -172,9 +172,9 @@ def validate_qualification(document: str, digest: str, failures: list[str]) -> N
     if schema_version is not None and schema_version != 2:
         failures.append("qualification schema_version must equal 2")
 
-    recorded_digest = scalar(document, "api_manifest_sha256")
+    recorded_digest = scalar(document, "canonical_manifest_sha256")
     if recorded_digest != digest:
-        failures.append("qualification api_manifest_sha256 differs from api/ev3-api.sha256")
+        failures.append("qualification canonical_manifest_sha256 differs from api/ev3-api.sha256")
 
     manifest = json.loads((ROOT / "api" / "ev3-api.json").read_text(encoding="utf-8"))
     expected_operations = len(manifest.get("operations", []))
@@ -224,14 +224,14 @@ def validate_qualification(document: str, digest: str, failures: list[str]) -> N
             failures.append(f"qualification evidence.{item}.status is missing")
 
     historical_revision = scalar(document, "historical_evidence", "source_revision")
-    historical_digest = scalar(document, "historical_evidence", "api_manifest_sha256")
+    historical_digest = scalar(document, "historical_evidence", "manifest_sha256")
     historical_summary = scalar(document, "historical_evidence", "summary")
     if historical_revision is None or not FULL_REVISION.fullmatch(historical_revision):
         failures.append("historical_evidence.source_revision must be a full Git SHA")
     elif run(["git", "cat-file", "-e", f"{historical_revision}^{{commit}}"]):
         failures.append("historical_evidence.source_revision is not a Git commit")
     if historical_digest is None or not SHA256.fullmatch(historical_digest):
-        failures.append("historical_evidence.api_manifest_sha256 must be a SHA-256 digest")
+        failures.append("historical_evidence.manifest_sha256 must be a SHA-256 digest")
     if repository_file(historical_summary) is None:
         failures.append(
             "historical_evidence.summary must name an existing repository-relative file"
