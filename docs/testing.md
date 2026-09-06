@@ -56,7 +56,7 @@ operations before opening a handle. Generated code contains no protocol encoding
 ## Current commit-bound evidence
 
 The final local evidence is bound to revision
-[`ebd0495`](https://github.com/GtechGovind/desfire-sdk/commit/ebd0495a81cee453ed27a49a47f086b29ba47579)
+[`6378f6f`](https://github.com/GtechGovind/desfire-sdk/commit/6378f6fe84d239a722f1bbca584280e801bc672d)
 and canonical API digest
 `15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596`.
 
@@ -74,7 +74,7 @@ and canonical API digest
   Android-test compilation, and the Compose showcase. The C++26 native runtime and OpenSSL 3.5.8
   were verified for ARM64, ARMv7, and x86_64, including required 16 KiB alignment. The AAR, debug
   APK, and unsigned release APK digests are recorded in `spec/qualification-record.yaml`. The
-  [hosted API 37.0 run](https://github.com/GtechGovind/desfire-sdk/actions/runs/34030170186)
+  [hosted API 37.0 run](https://github.com/GtechGovind/desfire-sdk/actions/runs/34031311221)
   passed both the SDK/JNI and Compose showcase instrumentation suites on a 16 KiB emulator.
 - The exact 407-file Git archive passed complete-history and source Gitleaks scans. Semgrep reported
   zero findings over 374 targets, and Grype reported zero matches across the 50-component source

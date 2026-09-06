@@ -3,10 +3,10 @@
 ## Current commit-bound scan
 
 The 2026-09-06 final source scan is bound to revision
-`ebd0495a81cee453ed27a49a47f086b29ba47579`. Its deterministic 407-file Git archive has SHA-256
-`defd402dd3040f4a8168c56a4540e315ac45c3c42d941e6a970b674d068d0bde`.
+`6378f6fe84d239a722f1bbca584280e801bc672d`. Its deterministic 407-file Git archive has SHA-256
+`295e12d427066c92d0da8771379a1c3d459d9743b7fb8bc9a072fef847c26b5b`.
 
-- Gitleaks 8.30.1 found no secret in the archive and no secret in the complete 33-commit history.
+- Gitleaks 8.30.1 found no secret in the archive and no secret in the complete 36-commit history.
 - Semgrep Community 1.176.0 ran 112 `p/security-audit` rules over 374 targets and reported no
   finding. It partially parsed `base.h`, `managed.h`, and `raw.h` because of C export and attribute
   macros; strict C99/C11 header compilation, ABI tests, and the native analyzer baseline cover those
