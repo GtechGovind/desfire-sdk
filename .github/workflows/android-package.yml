@@ -41,7 +41,7 @@ jobs:
         run: |
           sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           test -x "$sdkmanager"
-          "$sdkmanager" --install \
+          "$sdkmanager" --channel=3 --install \
             "platforms;android-37" \
             "build-tools;37.0.0" \
             "ndk;29.0.14206865"
@@ -110,6 +110,7 @@ jobs:
         with:
           api-level: 37
           target: google_apis_ps16k
+          channel: canary
           arch: x86_64
           profile: pixel_6
           cores: 2
