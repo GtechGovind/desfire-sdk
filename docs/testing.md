@@ -126,9 +126,11 @@ The corresponding hosted runs are [native](https://github.com/GtechGovind/desfir
   regression gate.
 - The opt-in CodSpeed executable and public-repository workflow provide hosted simulation profiles
   for native codecs and EV2 MAC sessions. After the public repository is imported into CodSpeed,
-  set its performance-check threshold to 5% and establish the first approved baseline. Hosted
-  comparisons do not establish embedded-reader performance acceptance; a controlled same-host
-  release baseline is still required before the local 5% gate can be enforced.
+  set the repository variable `CODSPEED_ENABLED=true`, configure its performance-check threshold
+  to 5%, and establish the first approved baseline. Until then, CI executes both benchmarks as a
+  smoke test without uploading. Hosted comparisons do not establish embedded-reader performance
+  acceptance; a controlled same-host release baseline is still required before the local 5% gate
+  can be enforced.
 
 Per-run Android, Python, Node, source-archive, SBOM, and checksum artifacts are retained by their
 workflows. A release record must bind final artifact hashes to its source revision and attestation;

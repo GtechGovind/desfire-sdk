@@ -75,9 +75,17 @@ jobs:
           cmake --build build/codspeed --target ev3_codspeed_benchmark --parallel 4
 
       - name: Run and upload public CodSpeed benchmarks
+        if: vars.CODSPEED_ENABLED == 'true'
         uses: CodSpeedHQ/action@373d6868929f444bc08d901fd0eb0ad52a8875ea # v5.2.1
         with:
           mode: simulation
           run: build/codspeed/tests/ev3_codspeed_benchmark
           runner-version: 5.2.1
           cache-instruments: false
+
+      - name: Run benchmark smoke test before CodSpeed is enabled
+        if: vars.CODSPEED_ENABLED != 'true'
+        run: >-
+          build/codspeed/tests/ev3_codspeed_benchmark
+          --benchmark_min_time=0.05s
+          --benchmark_repetitions=1
