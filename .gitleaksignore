@@ -1,0 +1,6 @@
+# Published cryptographic known-answer vectors in the archived pre-EV3 implementation.
+9e46a4ecbd9f0a42b57b497d17a440ea060eafec:sdk/python/tests/test_crypto.py:generic-api-key:50
+9e46a4ecbd9f0a42b57b497d17a440ea060eafec:sdk/python/tests/test_crypto.py:generic-api-key:52
+9e46a4ecbd9f0a42b57b497d17a440ea060eafec:sdk/python/tests/test_crypto.py:generic-api-key:54
+9e46a4ecbd9f0a42b57b497d17a440ea060eafec:sdk/python/tests/test_crypto.py:generic-api-key:56
+9e46a4ecbd9f0a42b57b497d17a440ea060eafec:sdk/python/tests/test_crypto.py:generic-api-key:58
