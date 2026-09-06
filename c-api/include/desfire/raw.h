@@ -15,7 +15,7 @@ extern "C" {
 /** @brief Permit exactly one native additional-frame continuation. */
 #define DF_RAW_SINGLE_CONTINUATION 0x00000001u
 /** @brief Sentinel requesting automatic native first-frame payload sizing. */
-#define DF_RAW_NO_FIRST_FRAME_BOUNDARY ((size_t)-1)
+#define DF_RAW_NO_FIRST_FRAME_BOUNDARY SIZE_MAX
 /** @brief Select ISO APDU length encoding from the command lengths. */
 #define DF_ISO_LENGTH_AUTOMATIC 0u
 /** @brief Require short ISO APDU length encoding. */

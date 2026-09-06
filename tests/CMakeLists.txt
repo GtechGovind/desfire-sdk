@@ -93,17 +93,20 @@ if(TARGET desfire_c)
         C_STANDARD 11
         C_STANDARD_REQUIRED YES
         C_EXTENSIONS NO)
+    desfire_apply_sanitizers(c_abi_layout_test)
     target_link_libraries(c_abi_layout_test PRIVATE desfire_c)
     add_test(NAME c_abi_layout_test COMMAND c_abi_layout_test)
 
     add_executable(c_abi_test unit/c_abi_test.c)
     set_target_properties(c_abi_test PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED YES)
+    desfire_apply_sanitizers(c_abi_test)
     target_compile_definitions(c_abi_test PRIVATE
         DESFIRE_EXPECTED_MANIFEST_SHA256="${DESFIRE_API_MANIFEST_SHA256}")
     target_link_libraries(c_abi_test PRIVATE desfire_c)
     add_test(NAME c_abi_test COMMAND c_abi_test)
     add_executable(cpp17_test unit/cpp17_test.cpp)
     set_target_properties(cpp17_test PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+    desfire_apply_sanitizers(cpp17_test)
     target_link_libraries(cpp17_test PRIVATE desfire::cpp17)
     add_test(NAME cpp17_test COMMAND cpp17_test)
 
@@ -112,6 +115,7 @@ if(TARGET desfire_c)
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO)
+    desfire_apply_sanitizers(cpp17_no_exceptions_test)
     target_link_libraries(cpp17_no_exceptions_test PRIVATE desfire::cpp17)
     if(MSVC)
         target_compile_options(cpp17_no_exceptions_test PRIVATE /EHs-c-)
@@ -125,6 +129,7 @@ if(TARGET desfire_c)
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO)
+    desfire_apply_sanitizers(cpp17_throwing_test)
     target_link_libraries(cpp17_throwing_test PRIVATE desfire::cpp17)
     add_test(NAME cpp17_throwing_test COMMAND cpp17_throwing_test)
 endif()

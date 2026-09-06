@@ -209,7 +209,7 @@ and CVE aliases, reachability, fixed versions, and disposition.
 
 | Evidence | SHA-256 |
 | --- | --- |
-| `build/security-scan/source-manifest.sha256` | `340b3c615c804c60651904158e11896f1dbc7b79df5ae616423eb74997db6bbb` |
+| `build/security-scan/source-manifest.sha256` | `f565bbd5002f5ce7ebbf533fd94ec67cb779754d63e0bb7455118153bb96c32e` |
 | `build/security-scan/gitleaks.json` | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
 | `build/security-scan/semgrep.json` | `f8ab24ace967dfa1b44de1c5f7c61861bbcc519add022b71e4206fdb7d8d0785` |
 | `build/security-scan/clang-analyzer.log` | `12cc5aa0eb64fc0cb12f124cb9d910641355041ad2da0a7411e07335111b6f2d` |
