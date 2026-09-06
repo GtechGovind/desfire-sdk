@@ -1,5 +1,5 @@
 schema_version: 2
-software_revision: c6b40f11a4c119b4b15c16d2a40ad1ea4e921e23
+software_revision: bb8ec8ece226249bcea55d32aa7b8d68dad9518e
 qualification_state: commit_bound_evidence
 canonical_manifest_sha256: 15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596
 abi_exports: 125
@@ -24,9 +24,9 @@ evidence:
   source_security_scan:
     status: passed_local_commit_bound
     archive_files: 407
-    archive_digest: 12692b8fc98b9d759294b1da1071425cde09bdad3470f84d67780329794208f9
+    archive_digest: fb526ed2912d32b624c513f44a8835fb06376db8615c6ad5f5c1b73fd8df57e1
     gitleaks_source_findings: 0
-    gitleaks_history_commits: 28
+    gitleaks_history_commits: 30
     gitleaks_history_findings: 0
     semgrep_targets: 374
     semgrep_findings: 0
