@@ -40,7 +40,7 @@ jobs:
             package: false
           - platform: windows
             name: Windows
-            runner: windows-2025
+            runner: windows-2025-vs2026
             generator: Visual Studio 18 2026
             crypto-library: libcrypto.lib
             package: false
@@ -123,7 +123,18 @@ jobs:
           cmake --build build/ci-${{ matrix.platform }}-cxx${{ matrix.standard }}
           --config Release --parallel 4
 
+      - name: Stage Windows C ABI library for native tests
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          library="build/ci-windows-cxx${{ matrix.standard }}/c-api/Release/desfire_c.dll"
+          cmake -E copy_if_different "$library" \
+            "build/ci-windows-cxx${{ matrix.standard }}/tests/Release/desfire_c.dll"
+          cmake -E copy_if_different "$library" \
+            "build/ci-windows-cxx${{ matrix.standard }}/examples/Release/desfire_c.dll"
+
       - name: Add native libraries to loader path
+        if: matrix.platform != 'windows'
         shell: bash
         run: |
           build_dir="$PWD/build/ci-${{ matrix.platform }}-cxx${{ matrix.standard }}"
@@ -144,6 +155,7 @@ jobs:
           --prefix "$PWD/build/install-${{ matrix.platform }}-cxx${{ matrix.standard }}"
 
       - name: Add installed libraries to loader path
+        if: matrix.platform != 'windows'
         shell: bash
         run: |
           install_dir="$PWD/build/install-${{ matrix.platform }}-cxx${{ matrix.standard }}"
@@ -165,11 +177,23 @@ jobs:
             -DOPENSSL_USE_STATIC_LIBS=TRUE \
             -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT"
 
-      - name: Build and run C99 and C++ consumers
+      - name: Build C99 and C++ consumers
+        shell: bash
+        run: >-
+          cmake --build build/consumer-${{ matrix.platform }}-cxx${{ matrix.standard }}
+          --config Release --parallel 4
+
+      - name: Stage installed Windows C ABI library for consumers
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: >-
+          cmake -E copy_if_different
+          "build/install-windows-cxx${{ matrix.standard }}/bin/desfire_c.dll"
+          "build/consumer-windows-cxx${{ matrix.standard }}/Release/desfire_c.dll"
+
+      - name: Run installed C99 and C++ consumers
         shell: bash
         run: |
-          cmake --build build/consumer-${{ matrix.platform }}-cxx${{ matrix.standard }} \
-            --config Release --parallel 4
           ctest --test-dir build/consumer-${{ matrix.platform }}-cxx${{ matrix.standard }} \
             --build-config Release --output-on-failure --timeout 120
 

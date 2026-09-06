@@ -3,10 +3,10 @@
 This record covers the DESFire EV3 working tree on the macOS ARM64 host on 2026-09-06.
 The local qualification started before the repository's initial commit, so its retained evidence
 is bound to the source snapshot in `build/security-scan/source-manifest.sha256`.
-The manifest covers 370 of the 371 current non-ignored files and has SHA-256
-`0d9a570a4179f83b85b1f8446b0da3fac56f5da6718937f84b85a97813ebc1c3`.
+The manifest covers 373 of the 374 current non-ignored files and has SHA-256
+`40d387ccab9bd702ce1e0e076fa48ce1841b19e807a79eab2c473cc794f9cbc9`.
 It excludes this report because embedding the manifest hash in a file covered by that manifest
-would be self-referential. Gitleaks separately scans all 371 files, including this report.
+would be self-referential. Gitleaks separately scans all 374 files, including this report.
 
 ## Result
 
@@ -20,11 +20,14 @@ The first hosted CodeQL pass also identified unsafe standard-library tar extract
 potential regular-expression denial of service in repository tooling. Archive extraction now
 writes only validated regular files, and documentation detection uses bounded linear scans.
 
-Hosted Windows C++23 and C++26 qualification identified a process-exit deadlock in the C ABI
-DLL consumers that initialized statically linked OpenSSL. The provider now initializes OpenSSL
-with `OPENSSL_INIT_NO_ATEXIT` on Windows, preventing libcrypto from running process-global cleanup
-under the DLL loader lock. SDK-owned providers, library contexts, keys, and buffers retain their
-ordinary RAII cleanup.
+Hosted Windows C++23 and C++26 qualification initially presented as 180-second C ABI consumer
+timeouts. Direct phase instrumentation established that every DLL-importing consumer terminated
+before its first statement with Windows status `0xC0000135`, while compile-only and non-importing
+controls passed. Staging the exact Visual C++ 14.51 runtime beside the executable did not change
+that status, disproving the earlier OpenSSL teardown hypothesis. The Git Bash loader path was not
+a native Windows path, so the workflow now copies the exact build-tree or installed
+`desfire_c.dll` beside each affected test executable before it runs. OpenSSL retains its default
+process-lifecycle behavior.
 
 The Git-history scan matched five published cryptographic known-answer vectors in the archived
 pre-EV3 test suite. Each reviewed false positive is suppressed by its exact commit, path, rule,
@@ -38,8 +41,8 @@ are retained in `build/security-scan/gradle-advisory-triage.json`.
 
 ## Scope and tools
 
-The secret scan used an exact snapshot of all 371 existing files returned by
-`git ls-files --cached --others --exclude-standard`, totaling 3,475,471 bytes. SAST covered the
+The secret scan used an exact snapshot of all 374 existing files returned by
+`git ls-files --cached --others --exclude-standard`, totaling 3,493,043 bytes. SAST covered the
 foundation, core, OpenSSL provider, transports, C ABI, SDK bridges, build tools, examples, and
 tests. The compile-database passes independently covered 49 native production translation units;
 the broader LLVM scan in [static-analysis.md](static-analysis.md) covered 54 production
@@ -51,7 +54,7 @@ translation units including JNI and Node.
 | Clang Static Analyzer and clang-tidy | Homebrew LLVM 23.1.0 | 54 production translation units; see `static-analysis.md` |
 | cppcheck | 2.21.0 | 49 native production translation units |
 | Semgrep Community | 1.176.0 | 112 security-audit rules over 261 source targets |
-| Gitleaks | 8.30.1 | 370 non-ignored working-tree files |
+| Gitleaks | 8.30.1 | 374 non-ignored working-tree files |
 | OSV-Scanner / OSV-Scalibr | 2.5.1 / 0.5.2 | Node lockfile and CycloneDX source, Gradle, and runtime SBOMs |
 | Syft | 1.51.1 | Current-source CycloneDX SBOM |
 | Grype | 0.118.0 | Current-source, Gradle selected, and managed-runtime SBOMs |
@@ -215,7 +218,7 @@ and CVE aliases, reachability, fixed versions, and disposition.
 
 | Evidence | SHA-256 |
 | --- | --- |
-| `build/security-scan/source-manifest.sha256` | `0d9a570a4179f83b85b1f8446b0da3fac56f5da6718937f84b85a97813ebc1c3` |
+| `build/security-scan/source-manifest.sha256` | `40d387ccab9bd702ce1e0e076fa48ce1841b19e807a79eab2c473cc794f9cbc9` |
 | `build/security-scan/gitleaks.json` | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
 | `build/security-scan/semgrep.json` | `f8ab24ace967dfa1b44de1c5f7c61861bbcc519add022b71e4206fdb7d8d0785` |
 | `build/security-scan/clang-analyzer.log` | `12cc5aa0eb64fc0cb12f124cb9d910641355041ad2da0a7411e07335111b6f2d` |

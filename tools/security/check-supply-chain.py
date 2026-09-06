@@ -207,6 +207,29 @@ def validate_codspeed(failures: list[str]) -> None:
         failures.append(f"{workflow_path}: CodSpeed runner and cache policy must remain pinned")
 
 
+def validate_windows_library_staging(failures: list[str]) -> None:
+    """Require Windows tests to resolve the exact C ABI library built by their job."""
+    workflow_path = WORKFLOW_DIRECTORY / "native.yml"
+    if not workflow_path.is_file():
+        failures.append(f"missing native workflow: {workflow_path}")
+        return
+    workflow = workflow_path.read_text(encoding="utf-8")
+    if "runner: windows-2025-vs2026" not in workflow:
+        failures.append(f"{workflow_path}: Windows native tests must use the VS 2026 image")
+    required_paths = (
+        "c-api/Release/desfire_c.dll",
+        "tests/Release/desfire_c.dll",
+        "examples/Release/desfire_c.dll",
+        "bin/desfire_c.dll",
+        "consumer-windows-cxx${{ matrix.standard }}/Release/desfire_c.dll",
+    )
+    for value in required_paths:
+        if value not in workflow:
+            failures.append(f"{workflow_path}: missing Windows C ABI staging path {value}")
+    if workflow.count("cmake -E copy_if_different") != 3:
+        failures.append(f"{workflow_path}: expected three deterministic Windows DLL copies")
+
+
 def main() -> int:
     """Run all repository supply-chain policy checks."""
     failures: list[str] = []
@@ -220,6 +243,7 @@ def main() -> int:
     )
     validate_dependabot(failures)
     validate_codspeed(failures)
+    validate_windows_library_staging(failures)
     if failures:
         for failure in failures:
             print(f"error: {failure}", file=sys.stderr)

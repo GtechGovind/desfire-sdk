@@ -14,6 +14,11 @@ runtime for each ABI. Kotlin, Kotlin coroutines, AndroidX test libraries, Gradle
 the NDK, CMake, Ninja, Perl, Make, Python, Swift, Node.js, and JDK tooling are not redistributed by
 the source tree unless a produced package explicitly contains one of their runtime components.
 
+The hosted Windows native matrix copies its freshly built `desfire_c.dll` beside build-tree and
+installed-consumer test executables. This avoids relying on shell-specific path conversion when
+the Windows loader resolves the tested C ABI library. These copies stay in temporary, non-uploaded
+test directories and do not alter the installed SDK package.
+
 PC/SC libraries and operating-system frameworks are optional platform dependencies. The Python
 package uses standard-library `ctypes`; the Node addon uses N-API; the Swift package imports the C
 ABI as a system library. Review the final binary's dependency list and notices for each release

@@ -292,16 +292,6 @@ namespace desfire {
 
     /** @brief Implement `openssl_provider` to create an isolated OpenSSL crypto provider. */
     Result<std::shared_ptr<CryptoProvider>> openssl_provider(bool allow_legacy) {
-#if defined(_WIN32)
-        // A statically linked libcrypto registers OPENSSL_cleanup with _onexit by default.
-        // Inside desfire_c.dll that handler runs under DLL teardown, where OpenSSL cleanup can
-        // wait while the Windows loader lock prevents dependent teardown from progressing.
-        // The operating system reclaims libcrypto's process-global bookkeeping; every provider,
-        // library context, key and operation buffer owned by this SDK is still released normally.
-        if (OPENSSL_init_crypto(OPENSSL_INIT_NO_ATEXIT, nullptr) != 1) {
-            return failure();
-        }
-#endif
         // Return only the public interface; no OpenSSL type appears in installed headers.
         auto p = std::make_shared<OpenSsl>(allow_legacy);
         if (!p->good()) {

@@ -5,9 +5,9 @@
 #include <desfire/cpp17.hpp>
 
 #include <algorithm>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <type_traits>
 
 namespace {
@@ -23,7 +23,7 @@ namespace {
     /** @brief Fail without relying on assertions disabled by NDEBUG. */
     void expect(bool condition, const char* message) {
         if (!condition) {
-            std::cerr << "FAILED: " << message << '\n';
+            std::fprintf(stderr, "FAILED: %s\n", message);
             std::exit(1);
         }
     }
@@ -311,5 +311,5 @@ int main() {
     raw_contracts();
     key_source_contracts();
     offline_contracts();
-    std::cout << "C++17 facade passed\n";
+    std::puts("C++17 facade passed");
 }

@@ -327,8 +327,9 @@ namespace {
                "ChangeKey case 1 inserts command CRC before the documented new-key CRC");
 
         auto key_set = session(crypto, "5DD4CBFC20A1988E1CDBAE322B315D57");
-        auto key_set_command = change_aes_key(key_one, hex("A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"), 3,
-                                              key_zero, hex("00112233445566778899AABBCCDDEEFF"), 2);
+        auto key_set_command =
+            change_aes_key(key_one, hex("A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"), 3, key_zero,
+                           hex("00112233445566778899AABBCCDDEEFF"), static_cast<Byte>(2));
         expect(key_set_command && !key_set_command.value().requires_ev2_session(),
                "ChangeKeyEV2 C6 accepts a verified Standard AES session");
         auto key_set_wire =
