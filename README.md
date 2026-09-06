@@ -28,8 +28,8 @@ Kotlin/JVM, Android, and Swift.
 > [!IMPORTANT]
 > This repository is a development release. Retained host, replay, cross-compilation, sanitizer,
 > and binding evidence does not replace acceptance on the intended EV3 card, reader, RF environment,
-> mobile device, key infrastructure, or certified product configuration. Current-revision evidence
-> remains pending in the qualification record.
+> mobile device, key infrastructure, or certified product configuration. The qualification record
+> identifies the exact source revision and evidence behind every current claim.
 > No public Maven, PyPI, npm, XCFramework, AAR, or desktop binary release exists yet; current
 > consumers build from source.
 
@@ -241,7 +241,7 @@ and the [API contract](docs/api-contract.md) for state and cancellation rules.
 | Swift | Swift concurrency over a private serial native executor | 14 macOS tests and iOS 16 device/simulator source builds | [Swift](docs/bindings/swift.md) |
 
 The platform and hardware boundaries are recorded in [spec/coverage.md](spec/coverage.md).
-Current-revision results remain pending until they are recorded in
+Current-revision results and any pending acceptance rows are recorded in
 [spec/qualification-record.yaml](spec/qualification-record.yaml).
 
 ## Verification
@@ -292,11 +292,11 @@ available material does not define an authoritative layout. The following areas 
 
 CI package artifacts are verification evidence rather than a supported distribution channel.
 
-The retained historical baseline includes source and host evidence, including cross-platform
-native CI. The current uncommitted source has no final software evidence record and no claim of
-physical EV3 interoperability, reader qualification, RF timing acceptance, production key custody,
-Android/CoreNFC device behavior, or product certification. Record those results for the exact card,
-reader firmware, mobile device, and application policy before deploying the SDK in production.
+The qualification record binds software evidence to a specific source revision and retains hosted
+run links where available. It makes no claim of physical EV3 interoperability, reader qualification,
+RF timing acceptance, production key custody, Android/CoreNFC device behavior, or product
+certification until those rows pass. Record those results for the exact card, reader firmware,
+mobile device, and application policy before deploying the SDK in production.
 
 For authoritative product documentation and certified integrations, use the official NXP material
 available under your organization's applicable license and access terms.
