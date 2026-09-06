@@ -4,7 +4,7 @@ This record covers the DESFire EV3 working tree on the macOS ARM64 host on 2026-
 The local qualification started before the repository's initial commit, so its retained evidence
 is bound to the source snapshot in `build/security-scan/source-manifest.sha256`.
 The manifest covers 370 of the 371 current non-ignored files and has SHA-256
-`340b3c615c804c60651904158e11896f1dbc7b79df5ae616423eb74997db6bbb`.
+`0d9a570a4179f83b85b1f8446b0da3fac56f5da6718937f84b85a97813ebc1c3`.
 It excludes this report because embedding the manifest hash in a file covered by that manifest
 would be self-referential. Gitleaks separately scans all 371 files, including this report.
 
@@ -20,6 +20,12 @@ The first hosted CodeQL pass also identified unsafe standard-library tar extract
 potential regular-expression denial of service in repository tooling. Archive extraction now
 writes only validated regular files, and documentation detection uses bounded linear scans.
 
+Hosted Windows C++23 and C++26 qualification identified a process-exit deadlock in the C ABI
+DLL consumers that initialized statically linked OpenSSL. The provider now initializes OpenSSL
+with `OPENSSL_INIT_NO_ATEXIT` on Windows, preventing libcrypto from running process-global cleanup
+under the DLL loader lock. SDK-owned providers, library contexts, keys, and buffers retain their
+ordinary RAII cleanup.
+
 The Git-history scan matched five published cryptographic known-answer vectors in the archived
 pre-EV3 test suite. Each reviewed false positive is suppressed by its exact commit, path, rule,
 and line fingerprint in `.gitleaksignore`; broader path or rule suppression is not used.
@@ -33,7 +39,7 @@ are retained in `build/security-scan/gradle-advisory-triage.json`.
 ## Scope and tools
 
 The secret scan used an exact snapshot of all 371 existing files returned by
-`git ls-files --cached --others --exclude-standard`, totaling 3,466,007 bytes. SAST covered the
+`git ls-files --cached --others --exclude-standard`, totaling 3,475,471 bytes. SAST covered the
 foundation, core, OpenSSL provider, transports, C ABI, SDK bridges, build tools, examples, and
 tests. The compile-database passes independently covered 49 native production translation units;
 the broader LLVM scan in [static-analysis.md](static-analysis.md) covered 54 production
@@ -209,7 +215,7 @@ and CVE aliases, reachability, fixed versions, and disposition.
 
 | Evidence | SHA-256 |
 | --- | --- |
-| `build/security-scan/source-manifest.sha256` | `53a5bd0e6afb2a4fdc8bdcfa532d097eca62be4b5f7dfc36c461ba4d4811dbab` |
+| `build/security-scan/source-manifest.sha256` | `0d9a570a4179f83b85b1f8446b0da3fac56f5da6718937f84b85a97813ebc1c3` |
 | `build/security-scan/gitleaks.json` | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
 | `build/security-scan/semgrep.json` | `f8ab24ace967dfa1b44de1c5f7c61861bbcc519add022b71e4206fdb7d8d0785` |
 | `build/security-scan/clang-analyzer.log` | `12cc5aa0eb64fc0cb12f124cb9d910641355041ad2da0a7411e07335111b6f2d` |
