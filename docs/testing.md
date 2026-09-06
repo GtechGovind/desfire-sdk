@@ -56,7 +56,7 @@ operations before opening a handle. Generated code contains no protocol encoding
 ## Current commit-bound evidence
 
 The final local evidence is bound to revision
-[`ef2fdf9`](https://github.com/GtechGovind/desfire-sdk/commit/ef2fdf9e667c71474993c6ebca718bc9c8eb2736)
+[`e52ac6f`](https://github.com/GtechGovind/desfire-sdk/commit/e52ac6f75e1e1872131aa266157b4170b8afa8a4)
 and canonical API digest
 `15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596`.
 

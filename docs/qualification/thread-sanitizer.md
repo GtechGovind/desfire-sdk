@@ -2,8 +2,9 @@
 
 This record describes the instrumented scope established at revision
 `0f3b733f27b73481f7b26cf9402b64ccfc256e75` and repeated against the current executable source on
-the macOS ARM64 host on 2026-09-06. The final source revision differs after that run only in
-documentation and qualification evidence. ThreadSanitizer complements static analysis,
+the macOS ARM64 host on 2026-09-06. The final source revision leaves the instrumented C++
+translation units unchanged; later changes cover managed SDKs, documentation, and CI.
+ThreadSanitizer complements static analysis,
 AddressSanitizer, UndefinedBehaviorSanitizer, replay tests, and target acceptance.
 
 ## Instrumented scope
