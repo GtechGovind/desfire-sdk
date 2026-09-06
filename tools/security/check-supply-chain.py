@@ -26,6 +26,9 @@ WRAPPER_DISTRIBUTION_SHA256 = (
     "6f74b601422d6d6fc4e1f9a1ab6522f642c2fdcbc15ae33ebd30ba3d7198e854"
 )
 WRAPPER_URL = "https\\://services.gradle.org/distributions/gradle-8.14.5-bin.zip"
+CODSPEED_CPP_REVISION = "f5a917fdd14db7293bd37acb682873fec19f8b6c"
+CODSPEED_CPP_SHA256 = "fe8f8a5f61ef0464df9fd3349491c358fdaa023d6cc17e3ca8d3cc6cd09c1634"
+CODSPEED_ACTION_REVISION = "373d6868929f444bc08d901fd0eb0ad52a8875ea"
 
 
 def sha256(path: Path) -> str:
@@ -168,6 +171,42 @@ def validate_dependabot(failures: list[str]) -> None:
             failures.append(f"Dependabot does not cover {ecosystem}")
 
 
+def validate_codspeed(failures: list[str]) -> None:
+    """Require immutable, checksum-verified CodSpeed C++ inputs and tokenless public upload."""
+    module_path = ROOT / "cmake" / "DesfireCodSpeed.cmake"
+    workflow_path = WORKFLOW_DIRECTORY / "codspeed.yml"
+    if not module_path.is_file():
+        failures.append(f"missing CodSpeed dependency module: {module_path}")
+        return
+    if not workflow_path.is_file():
+        failures.append(f"missing CodSpeed workflow: {workflow_path}")
+        return
+
+    module = module_path.read_text(encoding="utf-8")
+    required_module_values = (
+        CODSPEED_CPP_REVISION,
+        "codspeed-cpp/releases/download/v2.4.0/codspeed-cpp-v2.4.0.tar.gz",
+        f"SHA256={CODSPEED_CPP_SHA256}",
+        "google_benchmark-src/core/instrument-hooks",
+    )
+    for value in required_module_values:
+        if value not in module:
+            failures.append(f"{module_path}: missing pinned CodSpeed input {value}")
+    if "GIT_TAG" in module:
+        failures.append(f"{module_path}: CodSpeed inputs must use checksum-verified archives")
+
+    workflow = workflow_path.read_text(encoding="utf-8")
+    action_reference = f"CodSpeedHQ/action@{CODSPEED_ACTION_REVISION}"
+    if action_reference not in workflow:
+        failures.append(f"{workflow_path}: CodSpeed action must equal {action_reference}")
+    if re.search(r"(?m)^\s*token:\s*", workflow):
+        failures.append(f"{workflow_path}: public CodSpeed upload must remain tokenless")
+    if "-DCODSPEED_MODE=simulation" not in workflow or "mode: simulation" not in workflow:
+        failures.append(f"{workflow_path}: CodSpeed simulation must be enabled at build and upload")
+    if "runner-version: 5.2.1" not in workflow or "cache-instruments: false" not in workflow:
+        failures.append(f"{workflow_path}: CodSpeed runner and cache policy must remain pinned")
+
+
 def main() -> int:
     """Run all repository supply-chain policy checks."""
     failures: list[str] = []
@@ -180,6 +219,7 @@ def main() -> int:
         ROOT / "sdk" / "kotlin" / "gradle" / "verification-metadata.xml", failures
     )
     validate_dependabot(failures)
+    validate_codspeed(failures)
     if failures:
         for failure in failures:
             print(f"error: {failure}", file=sys.stderr)

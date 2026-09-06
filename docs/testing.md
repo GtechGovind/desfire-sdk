@@ -78,6 +78,11 @@ operations before opening a handle. Generated code contains no protocol encoding
   EV2 session operations/s on this host. These values are initial host evidence, not thresholds for
   other hardware; future releases require a controlled same-host baseline before applying the 5%
   regression gate.
+- The opt-in CodSpeed executable and public-repository workflow provide hosted simulation profiles
+  for native codecs and EV2 MAC sessions. After the public repository is imported into CodSpeed,
+  set its performance-check threshold to 5% and establish the first approved baseline. Hosted
+  comparisons do not establish embedded-reader performance acceptance; a controlled same-host
+  release baseline is still required before the local 5% gate can be enforced.
 
 Package hashes from this uncommitted development tree are recorded only as build evidence:
 

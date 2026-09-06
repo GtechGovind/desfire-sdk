@@ -1,0 +1,83 @@
+name: CodSpeed C++ benchmarks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmarks:
+    name: Native codecs and EV2 secure messaging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      CC: gcc-14
+      CXX: g++-14
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install GCC 14
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-14 g++-14 ninja-build
+          "$CC" --version
+          "$CXX" --version
+
+      - name: Validate pinned supply-chain inputs
+        run: python3 tools/security/check-supply-chain.py
+
+      - name: Restore verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Build and verify OpenSSL 3.5.8
+        id: openssl
+        run: >-
+          python3 .github/scripts/build-openssl.py
+          --prefix "${{ runner.temp }}/desfire-openssl"
+          --build-root "${{ runner.temp }}/desfire-openssl-work"
+          --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
+          --jobs 4
+
+      - name: Configure CodSpeed benchmark
+        env:
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+        run: |
+          cmake -S . -B build/codspeed -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DDESFIRE_CXX_STANDARD=26 \
+            -DDESFIRE_BUILD_CODSPEED_BENCHMARKS=ON \
+            -DDESFIRE_BUILD_TESTS=ON \
+            -DDESFIRE_BUILD_EXAMPLES=OFF \
+            -DDESFIRE_BUILD_C_API=OFF \
+            -DDESFIRE_BUILD_CPP17=OFF \
+            -DDESFIRE_BUILD_PCSC=OFF \
+            -DCODSPEED_MODE=simulation \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" \
+            -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/libcrypto.a" \
+            -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
+          cmake --build build/codspeed --target ev3_codspeed_benchmark --parallel 4
+
+      - name: Run and upload public CodSpeed benchmarks
+        uses: CodSpeedHQ/action@373d6868929f444bc08d901fd0eb0ad52a8875ea # v5.2.1
+        with:
+          mode: simulation
+          run: build/codspeed/tests/ev3_codspeed_benchmark
+          runner-version: 5.2.1
+          cache-instruments: false

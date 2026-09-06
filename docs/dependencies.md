@@ -18,3 +18,8 @@ PC/SC libraries and operating-system frameworks are optional platform dependenci
 package uses standard-library `ctypes`; the Node addon uses N-API; the Swift package imports the C
 ABI as a system library. Review the final binary's dependency list and notices for each release
 target because package-manager and platform choices can change what is redistributed.
+
+The opt-in hosted benchmark build downloads the MIT-licensed CodSpeed C++ v2.4.0 compatibility
+layer, its MIT/Apache-2.0 instrument hooks, and its Apache-2.0 Google Benchmark fork from one
+SHA-256-verified official release asset built from a recorded commit. These build-only inputs are
+disabled by default and are not included in ordinary SDK source or binary packages.
