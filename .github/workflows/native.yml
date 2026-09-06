@@ -53,7 +53,7 @@ jobs:
 
       - name: Install Linux PC/SC prerequisites
         if: matrix.platform == 'linux'
-        run: sudo apt-get update && sudo apt-get install --yes libpcsclite-dev pkg-config
+        run: sudo apt-get update && sudo apt-get install --yes clang libpcsclite-dev pkg-config
 
       - name: Check host toolchain
         shell: bash
@@ -79,6 +79,13 @@ jobs:
           --build-root "${{ runner.temp }}/desfire-openssl-work"
           --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
           --jobs 4
+
+      - name: Select Clang for Linux C++26
+        if: matrix.platform == 'linux' && matrix.standard == 26
+        shell: bash
+        run: |
+          echo "CC=clang" >> "$GITHUB_ENV"
+          echo "CXX=clang++" >> "$GITHUB_ENV"
 
       - name: Configure native SDK
         shell: bash

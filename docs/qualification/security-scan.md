@@ -4,7 +4,7 @@ This record covers the DESFire EV3 working tree on the macOS ARM64 host on 2026-
 The repository did not yet have a `HEAD` commit, so the evidence is bound to the current
 working-tree snapshot by `build/security-scan/source-manifest.sha256` rather than a commit ID.
 The manifest covers 369 of the 370 current non-ignored files and has SHA-256
-`3492157bb996b637a5426332254a755915d9c7ad190a5e8b99e64319d78eb20c`.
+`e55fd98797ee8267c118a66a6ef7cee8c3b3ed8742e1dba24e3d496b5c2d34e8`.
 It excludes this report because embedding the manifest hash in a file covered by that manifest
 would be self-referential. Gitleaks separately scans all 370 files, including this report.
 
@@ -201,7 +201,7 @@ and CVE aliases, reachability, fixed versions, and disposition.
 
 | Evidence | SHA-256 |
 | --- | --- |
-| `build/security-scan/source-manifest.sha256` | `3492157bb996b637a5426332254a755915d9c7ad190a5e8b99e64319d78eb20c` |
+| `build/security-scan/source-manifest.sha256` | `e55fd98797ee8267c118a66a6ef7cee8c3b3ed8742e1dba24e3d496b5c2d34e8` |
 | `build/security-scan/gitleaks.json` | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
 | `build/security-scan/semgrep.json` | `f8ab24ace967dfa1b44de1c5f7c61861bbcc519add022b71e4206fdb7d8d0785` |
 | `build/security-scan/clang-analyzer.log` | `12cc5aa0eb64fc0cb12f124cb9d910641355041ad2da0a7411e07335111b6f2d` |
