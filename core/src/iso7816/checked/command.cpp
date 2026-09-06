@@ -6,6 +6,7 @@
 #include <desfire/ev3/iso7816/raw/codec.hpp>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <limits>
 #include <utility>
