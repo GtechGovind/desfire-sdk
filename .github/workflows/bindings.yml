@@ -284,7 +284,7 @@ jobs:
 
   swift:
     name: Swift 6 / macOS
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 40
     steps:
       - name: Check out source

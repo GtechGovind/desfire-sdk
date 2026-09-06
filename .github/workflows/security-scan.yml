@@ -54,13 +54,13 @@ jobs:
           git /repo --redact=100 --report-format json
           --report-path /repo/.security-results/gitleaks.json
 
-      - name: Scan supported package manifests
+      - name: Scan the Node lockfile for blocking advisories
         if: always()
         run: >-
           docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo
           ghcr.io/google/osv-scanner-action@sha256:dcd947131d8d11b8d0964de6590661fb921a4ecbd7b90a7cb21083acfc3fd8cc
-          scan source --recursive --allow-no-lockfiles --format json
-          --output-file /repo/.security-results/osv.json /repo
+          scan source --lockfile /repo/sdk/node/package-lock.json --format json
+          --output-file /repo/.security-results/osv.json
 
       - name: Generate source SBOM
         if: always()

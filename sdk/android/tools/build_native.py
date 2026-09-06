@@ -10,6 +10,7 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import urllib.request
 
@@ -115,7 +116,10 @@ def main():
                         base = destination.parent if member.issym() else abi_build
                         if not (base / member.linkname).resolve().is_relative_to(abi_build):
                             raise RuntimeError('Source archive link escapes extraction directory')
-                package.extractall(abi_build)
+                if sys.version_info >= (3, 12):
+                    package.extractall(abi_build, filter='fully_trusted')
+                else:
+                    package.extractall(abi_build)
         if not (prefix / 'lib/libcrypto.a').is_file():
             run(['perl', 'Configure', openssl_target, 'no-shared', 'no-tests', 'no-apps',
                  'no-docs', 'no-legacy', 'no-fips', 'no-module', 'no-dso', '-fPIC',

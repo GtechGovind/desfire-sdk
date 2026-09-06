@@ -34,7 +34,7 @@ jobs:
             package: true
           - platform: macos
             name: macOS
-            runner: macos-15
+            runner: macos-26
             generator: Ninja
             crypto-library: libcrypto.a
             package: false

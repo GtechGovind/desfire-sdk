@@ -75,9 +75,11 @@ jobs:
             -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
           cmake --build build/codeql --parallel 2
 
-      - name: Install Android compilation platform
+      - name: Verify Android compilation platform
         if: matrix.language == 'java-kotlin'
-        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+        run: |
+          test -d "$ANDROID_SDK_ROOT/platforms/android-36"
+          test -d "$ANDROID_SDK_ROOT/build-tools/36.0.0"
 
       - name: Build Kotlin/JVM and Android sources
         if: matrix.language == 'java-kotlin'

@@ -4,7 +4,7 @@ This record covers the DESFire EV3 working tree on the macOS ARM64 host on 2026-
 The repository did not yet have a `HEAD` commit, so the evidence is bound to the current
 working-tree snapshot by `build/security-scan/source-manifest.sha256` rather than a commit ID.
 The manifest covers 369 of the 370 current non-ignored files and has SHA-256
-`e55fd98797ee8267c118a66a6ef7cee8c3b3ed8742e1dba24e3d496b5c2d34e8`.
+`ffc2103e1355dade981bf04f3694c12e0ec8cbb5a4f85af495459aa14af642c9`.
 It excludes this report because embedding the manifest hash in a file covered by that manifest
 would be self-referential. Gitleaks separately scans all 370 files, including this report.
 
@@ -201,7 +201,7 @@ and CVE aliases, reachability, fixed versions, and disposition.
 
 | Evidence | SHA-256 |
 | --- | --- |
-| `build/security-scan/source-manifest.sha256` | `e55fd98797ee8267c118a66a6ef7cee8c3b3ed8742e1dba24e3d496b5c2d34e8` |
+| `build/security-scan/source-manifest.sha256` | `ffc2103e1355dade981bf04f3694c12e0ec8cbb5a4f85af495459aa14af642c9` |
 | `build/security-scan/gitleaks.json` | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
 | `build/security-scan/semgrep.json` | `f8ab24ace967dfa1b44de1c5f7c61861bbcc519add022b71e4206fdb7d8d0785` |
 | `build/security-scan/clang-analyzer.log` | `12cc5aa0eb64fc0cb12f124cb9d910641355041ad2da0a7411e07335111b6f2d` |
@@ -222,7 +222,7 @@ and CVE aliases, reachability, fixed versions, and disposition.
 | `build/security-scan/grype-gradle-selected-current.json` | `f690b9a0d3f629ff4e1312827018174e42ef55c99bb29798b8effaba916ec34a` |
 | `gradle/wrapper/gradle-wrapper.jar` | `7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172` |
 | `sdk/android/gradle/verification-metadata.xml` | `6e108e54ba026b108fdaf5642b2d20921cf8a0fa93a97cfa0676957855b59ae5` |
-| `sdk/kotlin/gradle/verification-metadata.xml` | `726f7f7437180205c377892d3377cc2296dbba22114f2d53588a51f213e7a5bf` |
+| `sdk/kotlin/gradle/verification-metadata.xml` | `ee3f048db9ffa8962635f14c1eb0f0049a36823f28fc9d749fab0f3caedadfc2` |
 
 ## Limits and release decision
 

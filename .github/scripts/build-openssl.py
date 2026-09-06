@@ -92,7 +92,10 @@ def extract(archive: Path, directory: Path) -> Path:
                 link_base = destination.parent if member.issym() else directory.resolve()
                 if not (link_base / member.linkname).resolve().is_relative_to(directory.resolve()):
                     raise RuntimeError("OpenSSL archive link escapes the extraction directory")
-        package.extractall(directory)
+        if sys.version_info >= (3, 12):
+            package.extractall(directory, filter="fully_trusted")
+        else:
+            package.extractall(directory)
     return source
 
 
@@ -146,15 +149,22 @@ def build_windows(
     """Build OpenSSL inside one MSVC developer command environment."""
     developer_environment = visual_studio_environment()
     configure = subprocess.list2cmdline(["perl", "Configure", *configuration])
-    command = (
-        f'call "{developer_environment}" -arch=x64 -host_arch=x64'
-        f' && cd /d "{source}"'
-        f" && {configure}"
-        f" && nmake /NOLOGO build_libs"
-        f" && nmake /NOLOGO install_dev"
+    script = source.parent / "build-openssl.cmd"
+    script.write_text(
+        "@echo off\n"
+        f'call "{developer_environment}" -arch=x64 -host_arch=x64\n'
+        "if errorlevel 1 exit /b %errorlevel%\n"
+        f'cd /d "{source}"\n'
+        f"{configure}\n"
+        "if errorlevel 1 exit /b %errorlevel%\n"
+        "nmake /NOLOGO build_libs\n"
+        "if errorlevel 1 exit /b %errorlevel%\n"
+        "nmake /NOLOGO install_dev\n"
+        "exit /b %errorlevel%\n",
+        encoding="utf-8",
     )
     print(f"Building with {jobs} requested jobs; nmake executes the supported dependency graph", flush=True)
-    run(["cmd.exe", "/d", "/s", "/c", command], log=log)
+    run(["cmd.exe", "/d", "/s", "/c", str(script)], log=log)
 
 
 def valid_install(prefix: Path, expected: dict[str, str]) -> bool:
