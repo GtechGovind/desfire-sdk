@@ -3,10 +3,10 @@
 ## Current commit-bound scan
 
 The 2026-09-06 final source scan is bound to revision
-`bb8ec8ece226249bcea55d32aa7b8d68dad9518e`. Its deterministic 407-file Git archive has SHA-256
-`fb526ed2912d32b624c513f44a8835fb06376db8615c6ad5f5c1b73fd8df57e1`.
+`ebd0495a81cee453ed27a49a47f086b29ba47579`. Its deterministic 407-file Git archive has SHA-256
+`defd402dd3040f4a8168c56a4540e315ac45c3c42d941e6a970b674d068d0bde`.
 
-- Gitleaks 8.30.1 found no secret in the archive and no secret in the complete 30-commit history.
+- Gitleaks 8.30.1 found no secret in the archive and no secret in the complete 33-commit history.
 - Semgrep Community 1.176.0 ran 112 `p/security-audit` rules over 374 targets and reported no
   finding. It partially parsed `base.h`, `managed.h`, and `raw.h` because of C export and attribute
   macros; strict C99/C11 header compilation, ABI tests, and the native analyzer baseline cover those
@@ -19,9 +19,9 @@ The 2026-09-06 final source scan is bound to revision
   recorded in [supply-chain-security.md](supply-chain-security.md).
 
 The same source passed C++23/C++26 host tests, ASan/UBSan, TSan, binding suites, Android package
-verification, and Swift 6 iOS device/simulator source compilation. Those results and package
-digests are indexed in `spec/qualification-record.yaml`. Physical EV3, PC/SC, Android NFC, and
-CoreNFC acceptance remain unrun.
+verification, the API 37.0 16 KiB Android emulator suite, and Swift 6 iOS device/simulator source
+compilation. Those results and package digests are indexed in `spec/qualification-record.yaml`.
+Physical EV3, PC/SC, Android NFC, and CoreNFC acceptance remain unrun.
 
 ## Retained historical scan
 

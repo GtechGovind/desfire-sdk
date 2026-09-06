@@ -1,5 +1,5 @@
 schema_version: 2
-software_revision: bb8ec8ece226249bcea55d32aa7b8d68dad9518e
+software_revision: ebd0495a81cee453ed27a49a47f086b29ba47579
 qualification_state: commit_bound_evidence
 canonical_manifest_sha256: 15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596
 abi_exports: 125
@@ -24,9 +24,9 @@ evidence:
   source_security_scan:
     status: passed_local_commit_bound
     archive_files: 407
-    archive_digest: fb526ed2912d32b624c513f44a8835fb06376db8615c6ad5f5c1b73fd8df57e1
+    archive_digest: defd402dd3040f4a8168c56a4540e315ac45c3c42d941e6a970b674d068d0bde
     gitleaks_source_findings: 0
-    gitleaks_history_commits: 30
+    gitleaks_history_commits: 33
     gitleaks_history_findings: 0
     semgrep_targets: 374
     semgrep_findings: 0
@@ -63,7 +63,12 @@ evidence:
     release_apk_unsigned_digest: 6e3a7b3479555358d1359ef9f1548f322a83691aee1841bbd7dff423dfa11177
     elf_and_apk_16k_alignment: passed
   android_emulator:
-    status: pending_hosted_run
+    status: passed_hosted_commit_bound
+    run: https://github.com/GtechGovind/desfire-sdk/actions/runs/34030170186
+    api_level: 37.0
+    system_image: google_apis_ps16k_x86_64
+    sdk_instrumentation: passed
+    showcase_instrumentation: passed
   android_physical_nfc:
     status: not_run
   ios_source_compile:

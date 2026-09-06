@@ -25,9 +25,9 @@ release attestation, update policy, and current supply-chain limits are recorded
 [supply-chain-security.md](supply-chain-security.md).
 
 The current software record is bound to the exact source revision in
-`spec/qualification-record.yaml`. Android emulator execution remains pending until the hosted job
-finishes. Missing hardware evidence blocks a production-qualified claim even when every software
-and emulator suite passes.
+`spec/qualification-record.yaml`. The API 37.0 16 KiB emulator executed both SDK/JNI and showcase
+instrumentation in the recorded hosted run. Missing hardware evidence blocks a
+production-qualified claim even when every software and emulator suite passes.
 
 `tools/verify-release.py` always checks the qualification schema, canonical API identity, operation
 and export counts, evidence state, supply-chain policy, and historical-evidence link. A manual
