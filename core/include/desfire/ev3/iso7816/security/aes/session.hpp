@@ -56,10 +56,10 @@ namespace desfire::ev3::iso7816::security::aes {
     private:
 
         /** @brief Permit the verified authentication factory to install derived session state. */
-        friend Result<std::unique_ptr<Session>> authenticate(checked::Channel&, CryptoProvider&,
-                                                             checked::KeyReference, ByteView,
-                                                             const ExchangeOptions&,
-                                                             raw::LengthEncoding);
+        friend Result<std::unique_ptr<Session>>
+        authenticate(checked::Channel& channel, CryptoProvider& crypto, checked::KeyReference key,
+                     ByteView derived_key, const ExchangeOptions& options,
+                     raw::LengthEncoding encoding);
 
         /**
          * @brief Adopt a private derived key bound to one checked channel generation.
