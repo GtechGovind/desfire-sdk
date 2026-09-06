@@ -15,7 +15,7 @@ namespace desfire::bindings::generated {
 
     inline constexpr std::uint32_t abi_version = 1;
     inline constexpr std::string_view manifest_sha256 =
-        "f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff";
+        "15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596";
     inline constexpr std::array<Operation, 120> operations{{
         {1001, "open", "df_open", "runtime"},
         {1002, "close", "df_close", "runtime"},

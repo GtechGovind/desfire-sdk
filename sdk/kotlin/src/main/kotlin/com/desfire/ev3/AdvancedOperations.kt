@@ -45,11 +45,26 @@ public fun BlockingCard.getDelegatedApplicationInfo(
     timeoutMs: Long = 5_000,
 ): DelegatedApplicationInfo {
     require(slot in 0..0xFFFF)
-    val result = invoke(58, longArrayOf(slot.toLong(), timeoutMs), arrayOf())
-    check(result.size == 16) { "Malformed delegated-application information" }
+    return decodeDelegatedApplicationInfo(
+        invoke(58, longArrayOf(slot.toLong(), timeoutMs), arrayOf()),
+    )
+}
+
+/** Decode the fixed JNI representation and reject impossible native field values. */
+internal fun decodeDelegatedApplicationInfo(result: ByteArray): DelegatedApplicationInfo {
+    requireNativeResultSize(result, 16, "Malformed delegated-application information")
+    val slotVersion = readLe32(result, 0)
+    val quotaLimit = readLe32(result, 4)
+    val freeBlocks = readLe32(result, 8)
+    val applicationId = readLe32(result, 12)
+    if (slotVersion !in 0..0xFF || quotaLimit !in 0..0xFFFF || freeBlocks !in 0..0xFFFF ||
+        applicationId !in 1..0xFFFFFF
+    ) {
+        result.fill(0)
+        throw MalformedNativeResultException("Malformed delegated-application information fields")
+    }
     return DelegatedApplicationInfo(
-        readLe32(result, 0), readLe32(result, 4), readLe32(result, 8),
-        ApplicationId(readLe32(result, 12)),
+        slotVersion, quotaLimit, freeBlocks, ApplicationId(applicationId),
     )
 }
 
@@ -124,7 +139,13 @@ public fun BlockingCard.executeTransaction(
     timeoutMs: Long = 5_000,
 ): ByteArray {
     require(operations.size in 1..128) { "Transaction plan must contain one through 128 operations" }
-    return invoke(66, longArrayOf(returnMac.flag(), timeoutMs), arrayOf(encode(operations)))
+    val result = invoke(66, longArrayOf(returnMac.flag(), timeoutMs), arrayOf(encode(operations)))
+    requireNativeResultSize(
+        result,
+        if (returnMac) 12 else 0,
+        "Malformed native transaction-plan commit result",
+    )
+    return result
 }
 
 /** Suspend-friendly GetDFNames. */
@@ -217,5 +238,5 @@ private fun Boolean.flag(): Long = if (this) 1 else 0
 
 /** Reject an unexpected mutation payload. */
 private fun requireEmpty(bytes: ByteArray) {
-    check(bytes.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(bytes, "Unexpected native mutation payload")
 }

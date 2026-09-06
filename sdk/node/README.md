@@ -1,8 +1,9 @@
 # DESFire EV3 for Node.js and TypeScript
 
-`@desfire/ev3` exposes the checked managed Card, a separate expert raw channel, and all documented
-offline AES helpers from the stable C ABI. The package supports active Node.js LTS releases starting
-with Node 20 through N-API 8. Its declarations compile with TypeScript strict mode.
+`@desfire/ev3` exposes the checked managed Card, a separate expert raw channel, and the offline
+AES operations recorded in the canonical manifest and coverage matrix. The package uses N-API 8
+and currently executes its native suite on Node.js 20, 22, 24, and 26 on Linux. Its declarations
+compile with TypeScript strict mode.
 
 Each Card or RawChannel owns one worker. Blocking C calls stay on that worker while asynchronous
 reader and key-provider callbacks run on the main event loop. One FIFO admits complete logical
@@ -15,16 +16,26 @@ Build the main SDK with `DESFIRE_BUILD_C_API=ON` and the OpenSSL provider, then 
 against either that build tree or an installed C package:
 
 ```sh
+cmake -S . -B build/ev3 -G Ninja \
+  -DDESFIRE_BUILD_C_API=ON \
+  -DDESFIRE_BUILD_OPENSSL=ON \
+  -DDESFIRE_BUILD_PCSC=OFF
+cmake --build build/ev3 --target desfire_c --parallel
+npm --prefix sdk/node ci
 python3 sdk/node/tools/generate.py
 cmake -S sdk/node -B build/node-ev3 \
   -DDESFIRE_BUILD_DIR="$PWD/build/ev3" \
   -DNODE_INCLUDE_DIR=/absolute/path/to/node/include
 cmake --build build/node-ev3
-DYLD_LIBRARY_PATH="$PWD/build/ev3/c-api" \
-  DESFIRE_NODE_ADDON="$PWD/build/node-ev3/desfire_node.node" \
+DESFIRE_NODE_ADDON="$PWD/build/node-ev3/desfire_node.node" \
   npm --prefix sdk/node test
 npm --prefix sdk/node run typecheck
 ```
+
+Before the test command, make the matching C library discoverable: set
+`DYLD_LIBRARY_PATH="$PWD/build/ev3/c-api"` on macOS or
+`LD_LIBRARY_PATH="$PWD/build/ev3/c-api"` on Linux. On Windows, copy the freshly built
+`desfire_c.dll` beside `desfire_node.node` or add its directory to the process DLL search path.
 
 For an installed SDK, set `DESFIRE_C_INCLUDE_DIR` and `DESFIRE_C_LIBRARY`. Windows also needs
 `NODE_LIBRARY_DIR` for its Node import library. The generated dispatch, declarations, and operation
@@ -121,7 +132,8 @@ try {
 Offline methods cover NXP AES-128 diversification, delegated EncK and DAM MAC variants, MIFARE
 Classic license MAC, transaction session-key derivation, calculation and verification, ReaderID
 decryption, and UID originality verification. Provider variants resolve exportable AES-128 keys on
-the main event loop before worker dispatch.
+the main event loop before worker dispatch. Transaction-MAC helpers require complete authoritative
+TMI from the caller; automatic EV3 TMI construction is unavailable.
 
 ## Cancellation, errors, and recovery
 
@@ -142,3 +154,6 @@ The tests compile and execute against the actual N-API addon and C shared librar
 multi-card execution, queued and active cancellation, late completion, reentry, reader exclusivity,
 redaction, and no retries. These host/replay checks do not qualify physical EV3 cards, reader
 firmware, RF timing, production keys, or certification.
+
+This repository currently distributes source-build packages. It does not yet publish prebuilt
+native addons for npm platforms.

@@ -1,5 +1,6 @@
 package com.desfire.ev3.offline
 
+import com.desfire.ev3.MalformedNativeResultException
 import com.desfire.ev3.KeyScope
 import com.desfire.ev3.KeySource
 import com.desfire.ev3.KeyNumber
@@ -11,7 +12,10 @@ public fun deriveNxpAes128(masterKey: ByteArray, diversification: ByteArray): By
     require(diversification.size in 1..31) {
         "Diversification input must contain one through 31 bytes"
     }
-    return OfflineNative.deriveDirect(masterKey, diversification)
+    return exactOfflineResult(
+        OfflineNative.deriveDirect(masterKey, diversification), 16,
+        "Malformed native AES-128 derivation result",
+    )
 }
 
 /** Resolve one provider master key and derive it using the provider diversification bytes. */
@@ -22,11 +26,11 @@ public fun deriveNxpAes128(
     require(masterKey.diversificationBytes.size in 1..31) {
         "Provider diversification input must contain one through 31 bytes"
     }
-    return OfflineNative.deriveProvider(
+    return exactOfflineResult(OfflineNative.deriveProvider(
         masterKey.bridge, KeyScope.NATIVE.code, keyNumber.value, masterKey.referenceBytes,
         masterKey.diversificationBytes, masterKey.contextBytes,
         masterKey.applicationId?.value ?: -1, masterKey.keySet?.value ?: -1,
-    )
+    ), 16, "Malformed native provider AES-128 derivation result")
 }
 
 /** Calculate the documented eight-byte AES transaction MAC without card I/O. */
@@ -38,9 +42,9 @@ public fun calculateTransactionMacAes(
 ): ByteArray {
     require(transactionMacKey.size == 16) { "An AES-128 transaction key must contain sixteen bytes" }
     require(transactionCounter in 0..0xFFFF_FFFFL) { "Transaction counter must fit uint32" }
-    return OfflineNative.transactionMacDirect(
+    return exactOfflineResult(OfflineNative.transactionMacDirect(
         transactionMacKey, transactionCounter, uid, transactionInput,
-    )
+    ), 8, "Malformed native transaction MAC result")
 }
 
 /** Resolve one provider transaction key and calculate its eight-byte transaction MAC. */
@@ -52,12 +56,12 @@ public fun calculateTransactionMacAes(
     transactionInput: ByteArray,
 ): ByteArray {
     require(transactionCounter in 0..0xFFFF_FFFFL) { "Transaction counter must fit uint32" }
-    return OfflineNative.transactionMacProvider(
+    return exactOfflineResult(OfflineNative.transactionMacProvider(
         transactionMacKey.bridge, KeyScope.NATIVE.code, keyNumber.value,
         transactionMacKey.referenceBytes, transactionMacKey.diversificationBytes,
         transactionMacKey.contextBytes, transactionMacKey.applicationId?.value ?: -1,
         transactionMacKey.keySet?.value ?: -1, transactionCounter, uid, transactionInput,
-    )
+    ), 8, "Malformed native provider transaction MAC result")
 }
 
 /** Verify a DESFire UID originality signature using the documented secp224r1 construction. */
@@ -76,8 +80,11 @@ public fun encryptDelegatedDefaultKeyAes(
     requireAesKey(damEncryptionKey)
     requireAesKey(applicationDefaultKey)
     require(applicationDefaultKeyVersion in 0..0xFF)
-    return OfflineNative.invoke(0, longArrayOf(applicationDefaultKeyVersion.toLong()),
-        arrayOf(damEncryptionKey, applicationDefaultKey))
+    return exactOfflineResult(
+        OfflineNative.invoke(0, longArrayOf(applicationDefaultKeyVersion.toLong()),
+            arrayOf(damEncryptionKey, applicationDefaultKey)),
+        32, "Malformed native delegated encrypted-key result",
+    )
 }
 
 /** Resolve DAMEncKey and encrypt a delegated application default key. */
@@ -89,8 +96,11 @@ public fun encryptDelegatedDefaultKeyAes(
 ): ByteArray {
     requireAesKey(applicationDefaultKey)
     require(applicationDefaultKeyVersion in 0..0xFF)
-    return providerInvoke(damEncryptionKey, providerKeyNumber, 0,
-        longArrayOf(applicationDefaultKeyVersion.toLong()), arrayOf(applicationDefaultKey))
+    return exactOfflineResult(
+        providerInvoke(damEncryptionKey, providerKeyNumber, 0,
+            longArrayOf(applicationDefaultKeyVersion.toLong()), arrayOf(applicationDefaultKey)),
+        32, "Malformed native provider delegated encrypted-key result",
+    )
 }
 
 /** Calculate the issuer MAC for one delegated application configuration and EncK. */
@@ -100,8 +110,11 @@ public fun calculateDelegatedApplicationMacAes(
     encryptedDefaultKey: ByteArray,
 ): ByteArray {
     requireAesKey(damMacKey)
-    return OfflineNative.invoke(1, configurationNumbers(configuration),
-        arrayOf(damMacKey, configuration.dfNameBytes, encryptedDefaultKey))
+    return exactOfflineResult(
+        OfflineNative.invoke(1, configurationNumbers(configuration),
+            arrayOf(damMacKey, configuration.dfNameBytes, encryptedDefaultKey)),
+        8, "Malformed native delegated application MAC result",
+    )
 }
 
 /** Resolve DAMMACKey and calculate the issuer MAC for one delegated application. */
@@ -110,8 +123,11 @@ public fun calculateDelegatedApplicationMacAes(
     configuration: DelegatedApplication,
     encryptedDefaultKey: ByteArray,
     providerKeyNumber: KeyNumber = KeyNumber(0),
-): ByteArray = providerInvoke(damMacKey, providerKeyNumber, 1,
-    configurationNumbers(configuration), arrayOf(configuration.dfNameBytes, encryptedDefaultKey))
+): ByteArray = exactOfflineResult(
+    providerInvoke(damMacKey, providerKeyNumber, 1, configurationNumbers(configuration),
+        arrayOf(configuration.dfNameBytes, encryptedDefaultKey)),
+    8, "Malformed native provider delegated application MAC result",
+)
 
 /** Calculate the issuer MAC authorizing deletion of one delegated application. */
 public fun calculateDelegatedApplicationDeleteMacAes(
@@ -120,7 +136,10 @@ public fun calculateDelegatedApplicationDeleteMacAes(
 ): ByteArray {
     requireAesKey(damMacKey)
     require(applicationId in 1..0xFFFFFF)
-    return OfflineNative.invoke(2, longArrayOf(applicationId.toLong()), arrayOf(damMacKey))
+    return exactOfflineResult(
+        OfflineNative.invoke(2, longArrayOf(applicationId.toLong()), arrayOf(damMacKey)),
+        8, "Malformed native delegated deletion MAC result",
+    )
 }
 
 /** Resolve DAMMACKey and calculate the delegated application deletion MAC. */
@@ -130,8 +149,11 @@ public fun calculateDelegatedApplicationDeleteMacAes(
     providerKeyNumber: KeyNumber = KeyNumber(0),
 ): ByteArray {
     require(applicationId in 1..0xFFFFFF)
-    return providerInvoke(damMacKey, providerKeyNumber, 2,
-        longArrayOf(applicationId.toLong()), arrayOf())
+    return exactOfflineResult(
+        providerInvoke(damMacKey, providerKeyNumber, 2,
+            longArrayOf(applicationId.toLong()), arrayOf()),
+        8, "Malformed native provider delegated deletion MAC result",
+    )
 }
 
 /** Calculate the issuer MAC over an old and replacement delegated DF name. */
@@ -141,7 +163,10 @@ public fun calculateDelegatedConfigurationMacAes(
     newDfName: ByteArray,
 ): ByteArray {
     requireAesKey(damMacKey)
-    return OfflineNative.invoke(3, longArrayOf(), arrayOf(damMacKey, oldDfName, newDfName))
+    return exactOfflineResult(
+        OfflineNative.invoke(3, longArrayOf(), arrayOf(damMacKey, oldDfName, newDfName)),
+        8, "Malformed native delegated configuration MAC result",
+    )
 }
 
 /** Resolve DAMMACKey and calculate the delegated DF-name configuration MAC. */
@@ -150,8 +175,11 @@ public fun calculateDelegatedConfigurationMacAes(
     oldDfName: ByteArray,
     newDfName: ByteArray,
     providerKeyNumber: KeyNumber = KeyNumber(0),
-): ByteArray = providerInvoke(damMacKey, providerKeyNumber, 3, longArrayOf(),
-    arrayOf(oldDfName, newDfName))
+): ByteArray = exactOfflineResult(
+    providerInvoke(damMacKey, providerKeyNumber, 3, longArrayOf(),
+        arrayOf(oldDfName, newDfName)),
+    8, "Malformed native provider delegated configuration MAC result",
+)
 
 /** Calculate the eight-byte AES MAC for one complete MIFARE Classic license record. */
 public fun calculateMifareClassicLicenseMacAes(
@@ -160,8 +188,11 @@ public fun calculateMifareClassicLicenseMacAes(
     sectorSecrets: ByteArray,
 ): ByteArray {
     requireAesKey(licenseMacKey)
-    return OfflineNative.invoke(4, longArrayOf(),
-        arrayOf(licenseMacKey, license, sectorSecrets))
+    return exactOfflineResult(
+        OfflineNative.invoke(4, longArrayOf(),
+            arrayOf(licenseMacKey, license, sectorSecrets)),
+        8, "Malformed native MIFARE Classic license MAC result",
+    )
 }
 
 /** Resolve MFCLicenseMACKey and calculate a MIFARE Classic license MAC. */
@@ -170,8 +201,11 @@ public fun calculateMifareClassicLicenseMacAes(
     license: ByteArray,
     sectorSecrets: ByteArray,
     providerKeyNumber: KeyNumber = KeyNumber(0),
-): ByteArray = providerInvoke(licenseMacKey, providerKeyNumber, 4, longArrayOf(),
-    arrayOf(license, sectorSecrets))
+): ByteArray = exactOfflineResult(
+    providerInvoke(licenseMacKey, providerKeyNumber, 4, longArrayOf(),
+        arrayOf(license, sectorSecrets)),
+    8, "Malformed native provider MIFARE Classic license MAC result",
+)
 
 /** Derive SesTMMACKey followed by SesTMENCKey into one 32-byte result. */
 public fun deriveTransactionMacKeysAes(
@@ -181,7 +215,10 @@ public fun deriveTransactionMacKeysAes(
 ): ByteArray {
     requireAesKey(transactionKey)
     requireCounter(transactionCounter)
-    return OfflineNative.invoke(5, longArrayOf(transactionCounter), arrayOf(transactionKey, uid))
+    return exactOfflineResult(
+        OfflineNative.invoke(5, longArrayOf(transactionCounter), arrayOf(transactionKey, uid)),
+        32, "Malformed native transaction session-key result",
+    )
 }
 
 /** Resolve AppTransactionMACKey and derive both transaction session keys. */
@@ -192,8 +229,11 @@ public fun deriveTransactionMacKeysAes(
     providerKeyNumber: KeyNumber = KeyNumber(0),
 ): ByteArray {
     requireCounter(transactionCounter)
-    return providerInvoke(transactionKey, providerKeyNumber, 5,
-        longArrayOf(transactionCounter), arrayOf(uid))
+    return exactOfflineResult(
+        providerInvoke(transactionKey, providerKeyNumber, 5,
+            longArrayOf(transactionCounter), arrayOf(uid)),
+        32, "Malformed native provider transaction session-key result",
+    )
 }
 
 /** Calculate an eight-byte TMV from one already-derived SesTMMACKey. */
@@ -202,7 +242,10 @@ public fun calculateTransactionMacSessionAes(
     transactionInput: ByteArray,
 ): ByteArray {
     requireAesKey(sessionMacKey)
-    return OfflineNative.invoke(6, longArrayOf(), arrayOf(sessionMacKey, transactionInput))
+    return exactOfflineResult(
+        OfflineNative.invoke(6, longArrayOf(), arrayOf(sessionMacKey, transactionInput)),
+        8, "Malformed native session transaction MAC result",
+    )
 }
 
 /** Verify a transaction MAC from the backend key and exact committed inputs. */
@@ -240,7 +283,11 @@ public fun decryptTransactionReaderIdAes(
 ): ByteArray {
     requireAesKey(sessionEncryptionKey)
     require(encryptedReaderId.size == 16) { "Encrypted transaction reader ID must be 16 bytes" }
-    return OfflineNative.invoke(8, longArrayOf(), arrayOf(sessionEncryptionKey, encryptedReaderId))
+    return exactOfflineResult(
+        OfflineNative.invoke(8, longArrayOf(),
+            arrayOf(sessionEncryptionKey, encryptedReaderId)),
+        16, "Malformed native transaction reader-ID result",
+    )
 }
 
 /** Encode the exact versioned delegated-application fields without native pointers. */
@@ -279,9 +326,21 @@ private fun requireCounter(counter: Long) {
     require(counter in 0..0xFFFF_FFFFL) { "Transaction counter must fit uint32" }
 }
 
+/** Require one exact fixed-width result from an offline native helper. */
+internal fun exactOfflineResult(value: ByteArray, expected: Int, message: String): ByteArray {
+    if (value.size != expected) {
+        value.fill(0)
+        throw MalformedNativeResultException(message)
+    }
+    return value
+}
+
 /** Decode the private one-byte JNI boolean representation. */
 private fun booleanResult(value: ByteArray): Boolean {
-    check(value.size == 1 && value[0].toInt() in 0..1) { "Malformed native boolean result" }
+    if (value.size != 1 || value[0].toInt() !in 0..1) {
+        value.fill(0)
+        throw MalformedNativeResultException("Malformed native boolean result")
+    }
     return value[0].toInt() != 0
 }
 

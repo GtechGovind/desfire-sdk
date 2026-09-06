@@ -30,6 +30,14 @@ jobs:
       - name: Validate supply-chain policy
         run: python3 tools/security/check-supply-chain.py
 
+      - name: Require commit-bound software and hardware qualification for a version tag
+        if: github.event_name == 'push'
+        run: python3 tools/verify-release.py --require-hardware
+
+      - name: Validate software release inputs for a manual provenance run
+        if: github.event_name == 'workflow_dispatch'
+        run: python3 tools/verify-release.py --require-software
+
       - name: Prepare release directory
         run: mkdir -p artifacts
 

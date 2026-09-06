@@ -25,5 +25,15 @@ must explicitly reset or select/authenticate. Unknown delivery is never retried.
 API output allocation does not run a card operation twice. Cancellation bypasses the
 operation lock. No production keys or vendor source are distributed.
 
-Read coding-standards.md before editing. Every claimed feature requires implementation,
-typed API, independent success/failure tests, and explicit host versus card evidence.
+The detailed design is split into:
+
+- [core layers](architecture/core-layers.md);
+- [native protocol framing](architecture/native-protocol.md);
+- [raw and managed APIs](architecture/raw-and-managed-apis.md);
+- [security profiles](architecture/security-profiles.md);
+- [key resolution](architecture/key-resolution.md); and
+- [transport lifecycle](architecture/transport-lifecycle.md).
+
+Read the [coding standards](coding-standards.md) before editing. Every claimed feature requires
+implementation, a typed API, independent success/failure tests, and explicit host versus card
+evidence.

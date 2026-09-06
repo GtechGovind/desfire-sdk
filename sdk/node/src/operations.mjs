@@ -1,5 +1,5 @@
 /** Generated from api/ev3-api.json; contains no protocol encoding. */
-export const MANIFEST_SHA256 = "f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff";
+export const MANIFEST_SHA256 = "15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596";
 export const operations = Object.freeze({
   "get_version": {
     "id": 1006,
@@ -1133,7 +1133,7 @@ export const operations = Object.freeze({
       }
     ],
     "output": "bytes",
-    "mutation": false,
+    "mutation": true,
     "summary": "Update ISO binary content using the current ISO authentication state."
   },
   "iso_read_records": {
@@ -1187,7 +1187,7 @@ export const operations = Object.freeze({
       }
     ],
     "output": "bytes",
-    "mutation": false,
+    "mutation": true,
     "summary": "Append a record with an ISO CLA 00 command."
   },
   "iso_get_challenge": {
@@ -1857,7 +1857,7 @@ export const operations = Object.freeze({
       }
     ],
     "output": "bytes",
-    "mutation": false,
+    "mutation": true,
     "summary": "Execute the documented ISO UPDATE RECORD 0xDC or 0xDD variant."
   },
   "execute_transaction": {

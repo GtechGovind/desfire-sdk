@@ -14,7 +14,7 @@ fun BlockingCard.reset(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Cancel; preserves code, outcome and device status.
@@ -27,7 +27,7 @@ fun BlockingCard.cancel(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Notify state change; preserves code, outcome and device status.
@@ -40,7 +40,7 @@ fun BlockingCard.notifyStateChange(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Get version; preserves code, outcome and device status.
@@ -55,6 +55,7 @@ fun BlockingCard.getVersion(
         ),
         arrayOf()
     )
+    requireNativeResultSize(result, 28, "Malformed native version result")
     return result
 }
 
@@ -70,7 +71,7 @@ fun BlockingCard.freeMemory(
         ),
         arrayOf()
     )
-    check(result.size == 4) { "Malformed native scalar result" }
+    requireNativeResultSize(result, 4, "Malformed native scalar result")
     return (ByteBuffer.wrap(result).order(ByteOrder.LITTLE_ENDIAN).int.toLong() and 0xFFFFFFFFL)
 }
 
@@ -88,7 +89,7 @@ fun BlockingCard.selectApplication(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** File ids; preserves code, outcome and device status.
@@ -193,6 +194,7 @@ fun BlockingCard.readOriginalitySignature(
         ),
         arrayOf()
     )
+    requireNativeResultSize(result, 56, "Malformed native originality-signature result")
     return result
 }
 
@@ -208,7 +210,7 @@ fun BlockingCard.abortTransaction(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Format picc; preserves code, outcome and device status.
@@ -223,7 +225,7 @@ fun BlockingCard.formatPicc(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Delete file; preserves code, outcome and device status.
@@ -240,7 +242,7 @@ fun BlockingCard.deleteFile(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Get file settings; preserves code, outcome and device status.
@@ -274,7 +276,7 @@ fun BlockingCard.clearRecordFile(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Get file counters; preserves code, outcome and device status.
@@ -293,6 +295,7 @@ fun BlockingCard.getFileCounters(
         ),
         arrayOf()
     )
+    requireNativeResultSize(result, 5, "Malformed native file-counter result")
     return result
 }
 
@@ -310,7 +313,7 @@ fun BlockingCard.deleteApplication(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Change key settings; preserves code, outcome and device status.
@@ -327,7 +330,7 @@ fun BlockingCard.changeKeySettings(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Get key version; preserves code, outcome and device status.
@@ -346,6 +349,7 @@ fun BlockingCard.getKeyVersion(
         ),
         arrayOf()
     )
+    requireNativeResultSize(result, 1, "Malformed native key-version result")
     return result
 }
 
@@ -363,7 +367,7 @@ fun BlockingCard.initializeKeySet(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Roll key set; preserves code, outcome and device status.
@@ -380,7 +384,7 @@ fun BlockingCard.rollKeySet(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Finalize key set; preserves code, outcome and device status.
@@ -399,7 +403,7 @@ fun BlockingCard.finalizeKeySet(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Read data; preserves code, outcome and device status.
@@ -444,7 +448,7 @@ fun BlockingCard.writeData(
         ),
         arrayOf(data)
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Write record; preserves code, outcome and device status.
@@ -466,7 +470,7 @@ fun BlockingCard.writeRecord(
         ),
         arrayOf(data)
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Read records; preserves code, outcome and device status.
@@ -513,7 +517,7 @@ fun BlockingCard.updateRecord(
         ),
         arrayOf(data)
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Credit; preserves code, outcome and device status.
@@ -534,7 +538,7 @@ fun BlockingCard.credit(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Debit; preserves code, outcome and device status.
@@ -555,7 +559,7 @@ fun BlockingCard.debit(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Limited credit; preserves code, outcome and device status.
@@ -576,7 +580,7 @@ fun BlockingCard.limitedCredit(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Get value; preserves code, outcome and device status.
@@ -595,7 +599,7 @@ fun BlockingCard.getValue(
         ),
         arrayOf()
     )
-    check(result.size == 4) { "Malformed native scalar result" }
+    requireNativeResultSize(result, 4, "Malformed native scalar result")
     return ByteBuffer.wrap(result).order(ByteOrder.LITTLE_ENDIAN).int
 }
 
@@ -613,6 +617,11 @@ fun BlockingCard.commitTransaction(
         ),
         arrayOf()
     )
+    requireNativeResultSize(
+        result,
+        if (returnMac) 12 else 0,
+        "Malformed native transaction-commit result",
+    )
     return result
 }
 
@@ -629,6 +638,7 @@ fun BlockingCard.commitReaderId(
         ),
         arrayOf(readerId)
     )
+    requireNativeResultSize(result, 16, "Malformed native committed reader-ID result")
     return result
 }
 
@@ -653,7 +663,7 @@ fun BlockingCard.createApplication(
         ),
         arrayOf(dfName)
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Create data file; preserves code, outcome and device status.
@@ -680,7 +690,7 @@ fun BlockingCard.createDataFile(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Create value file; preserves code, outcome and device status.
@@ -711,7 +721,7 @@ fun BlockingCard.createValueFile(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Create record file; preserves code, outcome and device status.
@@ -740,7 +750,7 @@ fun BlockingCard.createRecordFile(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Change file settings; preserves code, outcome and device status.
@@ -763,7 +773,7 @@ fun BlockingCard.changeFileSettings(
         ),
         arrayOf()
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Create transaction mac file; preserves code, outcome and device status.
@@ -785,7 +795,7 @@ fun BlockingCard.createTransactionMacFile(
         ),
         arrayOf(key)
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Change aes key; preserves code, outcome and device status.
@@ -812,7 +822,7 @@ fun BlockingCard.changeAesKey(
         ),
         arrayOf(newKey, oldKey)
     )
-    check(result.isEmpty()) { "Unexpected native mutation payload" }
+    requireEmptyNativeResult(result, "Unexpected native mutation payload")
 }
 
 /** Iso select file; preserves code, outcome and device status.

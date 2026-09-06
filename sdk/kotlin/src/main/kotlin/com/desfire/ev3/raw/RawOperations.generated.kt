@@ -10,7 +10,7 @@ public data class RawOperation(
 )
 
 public const val ABI_VERSION: Int = 1
-public const val MANIFEST_SHA256: String = "f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff"
+public const val MANIFEST_SHA256: String = "15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596"
 public val OPERATIONS: Map<Int, RawOperation> = listOf(
     RawOperation(1001, "open", "df_open", "runtime"),
     RawOperation(1002, "close", "df_close", "runtime"),

@@ -83,13 +83,13 @@ areas:
 
 unsupported:
   - feature: sdm
-    reason: Explicitly deferred; supplied material does not define every conditional layout.
+    reason: Explicitly deferred; no authoritative complete conditional layout is recorded.
   - feature: set_configuration_sak
     reason: Authoritative EV3 field layout is unavailable.
   - feature: set_configuration_virtual_card_identifier
     reason: Authoritative EV3 field layout is unavailable.
   - feature: delegated_option_6_card_payload
-    reason: Supplied material covers the offline authorization input but not the card payload.
+    reason: No authoritative card-payload layout is recorded.
   - feature: automatic_transaction_mac_input_accumulation
     reason: Offline APIs require caller-supplied authoritative transaction input.
   - feature: opaque_sam_hsm_keys

@@ -6,8 +6,11 @@ public fun BlockingCard.authenticateStandardAes(
     keySource: KeySource,
     timeoutMs: Long = 5_000,
 ) {
-    authenticate(AuthenticationProfile.STANDARD_AES, KeyScope.NATIVE, keyNumber, false,
-        keySource, byteArrayOf(), timeoutMs)
+    requireEmptyNativeResult(
+        authenticate(AuthenticationProfile.STANDARD_AES, KeyScope.NATIVE, keyNumber, false,
+            keySource, byteArrayOf(), timeoutMs),
+        "Unexpected Standard AES authentication result payload",
+    )
 }
 
 /** Establish EV2 First and return verified transaction and capability metadata. */
@@ -42,8 +45,11 @@ public fun BlockingCard.authenticateIsoAes(
     timeoutMs: Long = 5_000,
 ) {
     val scope = if (application) KeyScope.ISO_APPLICATION else KeyScope.ISO_PICC
-    authenticate(AuthenticationProfile.ISO_AES, scope, keyNumber, application,
-        keySource, byteArrayOf(), timeoutMs)
+    requireEmptyNativeResult(
+        authenticate(AuthenticationProfile.ISO_AES, scope, keyNumber, application,
+            keySource, byteArrayOf(), timeoutMs),
+        "Unexpected ISO AES authentication result payload",
+    )
 }
 
 /** Invoke one profile-specific JNI entrypoint without exposing key bytes to generic dispatch. */

@@ -21,12 +21,22 @@ only purpose, optional authentication profile, scope, selector, optional applica
 reference, diversification, user context, and cancellation state, and redacts callback failures.
 Resolution occurs before card I/O and never retries.
 
+Direct and derived sources implement `AutoCloseable`. Close them only after their admitted
+operation finishes; close overwrites their owned key and diversification arrays and rejects later
+reuse. Provider lifetime remains caller-owned because it may serve more than one operation.
+
 The `offline` package covers every stateless AES operation in ABI v1, including NXP key
 diversification, delegated EncK and DAM MAC variants, MIFARE Classic license MAC, transaction
 session keys, TMV calculation and verification, ReaderID decryption, and UID originality
 verification. Direct key arrays are copied and wiped in JNI. Provider variants retain exact
 purpose metadata and fail before any card I/O. JNI verifies the linked ABI version and canonical
 manifest SHA-256 against the generated Kotlin inventory during first load.
+
+Transaction-MAC calculation and verification require the caller's complete authoritative TMI;
+automatic EV3 TMI construction is unavailable. Kotlin/JVM arrays and Android runtime copies cannot
+be guaranteed erased by JNI. Keep keys scoped, avoid retaining them in application state, disable
+heap dumps that may contain secrets, and use the provider path when a short-lived export is
+available.
 
 The JNI implementation is split by ownership:
 
@@ -44,6 +54,9 @@ The raw package opens a separately owned C raw channel. It exposes status-preser
 frames, bounded native logical requests, true ISO APDUs, explicit secure-native requests, and
 profile-specific raw authentication. Every response/chaining/communication/session-invalidation
 choice is caller-visible. A raw channel cannot be derived from or silently share a managed card.
+Byte-owning raw request and response descriptors implement `AutoCloseable`. Applications close each
+descriptor after dispatch; `useData` bounds a temporary response copy to one callback and clears it
+on every exit. A direct response `data` getter returns a caller-owned copy that the caller must clear.
 
 `IsoDepTransport` accepts only a connected tag, rejects main-thread exchange, assigns the remaining
 per-frame timeout, and performs one `transceive`. Tag loss and I/O failure after dispatch retain

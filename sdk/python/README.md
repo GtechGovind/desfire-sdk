@@ -1,16 +1,19 @@
 # DESFire EV3 Python SDK
 
-Python 3.10 and later use the stable C99 ABI through standard-library `ctypes`. The C++ core owns
+Python 3.10 and later use the versioned C99 ABI v1 through standard-library `ctypes`. The C++
+core owns
 all protocol encoding, secure messaging, and cryptography. The package checks ABI version 1 and the
 canonical operation-manifest SHA-256 before opening a card or running an offline operation.
 
-Build `desfire::c`, then install this directory:
+From the repository root, build `desfire::c` and install the Python package:
 
 ```sh
-cmake -S ../.. -B ../../build/python-native -G Ninja \
-  -DDESFIRE_BUILD_C_API=ON -DDESFIRE_BUILD_OPENSSL=ON
-cmake --build ../../build/python-native --target desfire_c
-python -m pip install .
+cmake -S . -B build/python-native -G Ninja \
+  -DDESFIRE_BUILD_C_API=ON \
+  -DDESFIRE_BUILD_OPENSSL=ON \
+  -DDESFIRE_BUILD_PCSC=OFF
+cmake --build build/python-native --target desfire_c --parallel
+python -m pip install ./sdk/python
 ```
 
 The library path is explicit. Use `libdesfire_c.dylib` on macOS, `libdesfire_c.so` on Linux, or
@@ -131,6 +134,8 @@ with Card(native_library, Reader()) as provider_card:
 MIFARE Classic license MAC, transaction-MAC key derivation/calculation/verification, ReaderID
 decryption, and originality verification. Every keyed workflow has a direct method and a `*_from`
 method for `Direct`, `Derived`, or `Provider` resolution.
+Transaction-MAC calculation and verification require complete authoritative TMI from the caller;
+automatic EV3 TMI construction is unavailable.
 
 ## Expert raw channel
 
@@ -161,11 +166,11 @@ must not reconnect or retry ambiguous exchanges internally.
 ## Generation and validation
 
 ```sh
-python tools/generate_operations.py --check
-DESFIRE_LIBRARY=/absolute/path/to/libdesfire_c.dylib PYTHONPATH=src \
-  python -m unittest discover -s tests -v
-mypy --strict src/desfire_ev3
-python -m build --outdir ../../build/python-dist
+python3 sdk/python/tools/generate_operations.py --check
+DESFIRE_LIBRARY=/absolute/path/to/libdesfire_c.dylib PYTHONPATH=sdk/python/src \
+  python -m unittest discover -s sdk/python/tests -v
+python -m mypy --strict sdk/python/src/desfire_ev3
+python -m build --outdir build/python-dist sdk/python
 ```
 
 The generator reads all split C headers, proves their exports match `api/ev3-api.json`, and emits

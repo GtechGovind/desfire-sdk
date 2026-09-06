@@ -12,15 +12,13 @@ choose exception-based control flow; it is intentionally absent from the primary
 
 `Card`, `raw::Card`, `raw::Channel`, `raw::Buffer`, and `Aes128Key` use RAII and have one owner.
 `Card` adds strong application, file, key, key-set, ISO-file, offset, count, access-right, and
-settings types plus `std::chrono::milliseconds`. The frozen library has 125 exports; the raw
-handle classes and `offline` namespace cover all 120 fallible manifest operations, including all
+settings types plus `std::chrono::milliseconds`. The current ABI v1 baseline allowlists 125
+exports; the raw handle classes and `offline` namespace cover all 120 fallible manifest operations, including all
 21 offline direct/provider entries and all raw native, ISO, and secure exchanges.
-`raw::Buffer::copy()` copies an owned C
-response without executing the card operation again.
+`raw::Buffer::copy()` copies an owned C response without executing the card operation again.
 
-Every open verifies C ABI version 1 and manifest SHA-256
-`f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff` before creating a
-handle. The generated 120-operation inventory is installed with the facade, so a mismatched
+Every open verifies C ABI version 1 and the generated manifest SHA-256 before creating a handle.
+The 120-operation inventory and its current digest are installed with the facade, so a mismatched
 runtime fails locally with `unsupported` and `not_sent` evidence.
 
 AES operations accept a direct `Aes128Key`, a custom `Aes128KeyDeriver`, or a synchronous
@@ -33,7 +31,8 @@ outcome.
 Offline typed helpers cover AN10922 AES-128 derivation, delegated EncK and authorization MACs,
 MIFARE Classic license MAC, transaction session-key derivation, TMV calculation/verification,
 ReaderID decryption, and originality-signature verification. These helpers do not communicate
-with a card. The caller still owns replay/counter policy and originality trust anchors.
+with a card. The caller supplies complete authoritative TMI because automatic EV3 TMI construction
+is unavailable. The caller still owns replay/counter policy and originality trust anchors.
 
 One Card owns one activated transport. Its callbacks and externally managed context must remain
 valid for the Card lifetime unless the C transport descriptor supplies paired retain/release

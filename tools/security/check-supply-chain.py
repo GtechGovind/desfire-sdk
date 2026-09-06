@@ -7,7 +7,7 @@ import hashlib
 from pathlib import Path
 import re
 import sys
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosemgrep: python.lang.security.use-defused-xml.use-defused-xml
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,11 +21,11 @@ CONTAINER_REFERENCE = re.compile(
     r"|ghcr\.io/google/osv-scanner-action"
     r"(?::[^\s\"']+)?(?:@sha256:[0-9a-f]{64})?"
 )
-WRAPPER_JAR_SHA256 = "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172"
+WRAPPER_JAR_SHA256 = "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7"
 WRAPPER_DISTRIBUTION_SHA256 = (
-    "6f74b601422d6d6fc4e1f9a1ab6522f642c2fdcbc15ae33ebd30ba3d7198e854"
+    "bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01"
 )
-WRAPPER_URL = "https\\://services.gradle.org/distributions/gradle-8.14.5-bin.zip"
+WRAPPER_URL = "https\\://services.gradle.org/distributions/gradle-9.6.0-bin.zip"
 CODSPEED_CPP_REVISION = "f5a917fdd14db7293bd37acb682873fec19f8b6c"
 CODSPEED_CPP_SHA256 = "fe8f8a5f61ef0464df9fd3349491c358fdaa023d6cc17e3ca8d3cc6cd09c1634"
 CODSPEED_ACTION_REVISION = "373d6868929f444bc08d901fd0eb0ad52a8875ea"
@@ -117,7 +117,7 @@ def validate_wrapper(failures: list[str]) -> None:
             failures.append(f"missing Gradle wrapper file: {path}")
             return
     if sha256(jar) != WRAPPER_JAR_SHA256:
-        failures.append("Gradle wrapper JAR differs from the reviewed Gradle 8.14.5 wrapper")
+        failures.append("Gradle wrapper JAR differs from the reviewed Gradle 9.6.0 wrapper")
     try:
         properties = load_properties(properties_path)
     except (OSError, ValueError) as error:
@@ -139,7 +139,11 @@ def validate_verification_file(path: Path, failures: list[str]) -> None:
         failures.append(f"missing Gradle dependency verification metadata: {path}")
         return
     try:
-        root = ET.parse(path).getroot()
+        document = path.read_bytes()
+        if b"<!DOCTYPE" in document.upper() or b"<!ENTITY" in document.upper():
+            failures.append(f"{path}: DTD and entity declarations are prohibited")
+            return
+        root = ET.fromstring(document)
     except (OSError, ET.ParseError) as error:
         failures.append(f"cannot parse {path}: {error}")
         return

@@ -2,8 +2,11 @@ name: Android release package
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -15,7 +18,7 @@ concurrency:
 
 jobs:
   aar:
-    name: Three-ABI verified AAR
+    name: Three-ABI AAR and Showcase APK
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
@@ -36,8 +39,14 @@ jobs:
       - name: Install pinned Android platform and NDK
         shell: bash
         run: |
-          test -d "$ANDROID_SDK_ROOT/platforms/android-36"
-          test -d "$ANDROID_SDK_ROOT/build-tools/36.0.0"
+          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$sdkmanager"
+          "$sdkmanager" --install \
+            "platforms;android-37" \
+            "build-tools;37.0.0" \
+            "ndk;29.0.14206865"
+          test -d "$ANDROID_SDK_ROOT/platforms/android-37"
+          test -d "$ANDROID_SDK_ROOT/build-tools/37.0.0"
           ndk="$ANDROID_SDK_ROOT/ndk/29.0.14206865"
           test -f "$ndk/source.properties"
           echo "ANDROID_NDK_ROOT=$ndk" >> "$GITHUB_ENV"
@@ -76,24 +85,57 @@ jobs:
           ./gradlew -p sdk/android \
             --dependency-verification strict --no-daemon --no-build-cache --stacktrace \
             assembleRelease lintRelease compileDebugAndroidTestSources \
+            :example-app:assembleDebug :example-app:assembleRelease \
+            :example-app:lintDebug :example-app:lintRelease \
+            :example-app:testDebugUnitTest \
             -PdesfireNativeDirectory="$PWD/sdk/android/build/native-jniLibs"
 
-      - name: Verify packaged classes, notices, ABIs, and ELF hashes
-        run: python3 sdk/android/tools/verify_aar.py
+      - name: Verify packaged classes, notices, ABIs, ELF hashes, and APK alignment
+        run: |
+          python3 -m unittest discover -s sdk/android/tools -p 'test_*.py'
+          python3 sdk/android/tools/verify_aar.py
+          python3 sdk/android/tools/verify_apk.py \
+            --zipalign "$ANDROID_SDK_ROOT/build-tools/37.0.0/zipalign"
+
+      - name: Enable KVM for the Android emulator
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Execute JNI and showcase smoke tests on a 16 KiB Android emulator
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 37
+          target: google_apis_ps16k
+          arch: x86_64
+          profile: pixel_6
+          cores: 2
+          ram-size: 4096M
+          script: >-
+            ./gradlew -p sdk/android --dependency-verification strict --no-daemon
+            --no-build-cache :connectedDebugAndroidTest :example-app:connectedDebugAndroidTest
+            -PdesfireNativeDirectory=$GITHUB_WORKSPACE/sdk/android/build/native-jniLibs
 
       - name: Hash release evidence
         run: |
           sha256sum sdk/android/build/outputs/aar/*.aar
           sha256sum sdk/android/build/native/build-evidence.json
+          sha256sum examples/android-app/build/outputs/apk/debug/*.apk
+          sha256sum examples/android-app/build/outputs/apk/release/*.apk
 
       - name: Upload verified Android package and evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: desfire-android-aar
+          name: desfire-android-packages
           path: |
             sdk/android/build/outputs/aar/*.aar
             sdk/android/build/native/build-evidence.json
             sdk/android/build/native/OPENSSL-LICENSE.txt
+            examples/android-app/build/outputs/apk/debug/*.apk
+            examples/android-app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           include-hidden-files: false
           retention-days: 30

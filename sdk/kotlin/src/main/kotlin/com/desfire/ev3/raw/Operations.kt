@@ -1,5 +1,7 @@
 package com.desfire.ev3.raw
 
+import com.desfire.ev3.requireEmptyNativeResult
+
 /** Reset the raw transport and erase all raw authentication sessions. */
 public fun BlockingRawChannel.reset(): Unit = requireEmpty(invoke(0, longArrayOf(), arrayOf()))
 
@@ -99,5 +101,5 @@ public suspend fun RawChannel.secureNativeExchange(
 
 /** Require the empty success result used by lifecycle operations. */
 private fun requireEmpty(result: ByteArray) {
-    check(result.isEmpty()) { "Unexpected raw lifecycle payload" }
+    requireEmptyNativeResult(result, "Unexpected raw lifecycle payload")
 }

@@ -19,6 +19,7 @@
 *.pfx
 *.keystore
 *.jks
+*.hprof
 
 # Module-local build outputs must never enter source packages.
 **/build/

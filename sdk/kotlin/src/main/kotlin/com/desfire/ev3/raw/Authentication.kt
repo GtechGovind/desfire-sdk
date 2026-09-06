@@ -5,6 +5,7 @@ import com.desfire.ev3.AuthenticationProfile
 import com.desfire.ev3.KeyNumber
 import com.desfire.ev3.KeyScope
 import com.desfire.ev3.KeySource
+import com.desfire.ev3.requireEmptyNativeResult
 
 /** Establish a Standard AES session on this independent native raw channel. */
 public fun BlockingRawChannel.authenticateStandardAes(
@@ -12,8 +13,11 @@ public fun BlockingRawChannel.authenticateStandardAes(
     keySource: KeySource,
     timeoutMs: Long = 5_000,
 ) {
-    authenticate(AuthenticationProfile.STANDARD_AES, KeyScope.NATIVE, keyNumber, false,
-        keySource, byteArrayOf(), timeoutMs)
+    requireEmptyNativeResult(
+        authenticate(AuthenticationProfile.STANDARD_AES, KeyScope.NATIVE, keyNumber, false,
+            keySource, byteArrayOf(), timeoutMs),
+        "Unexpected raw Standard AES authentication result payload",
+    )
 }
 
 /** Establish EV2 First on this raw channel and return verified public metadata. */
@@ -43,9 +47,12 @@ public fun BlockingRawChannel.authenticateIsoAes(
     keySource: KeySource,
     timeoutMs: Long = 5_000,
 ) {
-    authenticate(AuthenticationProfile.ISO_AES,
-        if (application) KeyScope.ISO_APPLICATION else KeyScope.ISO_PICC,
-        keyNumber, application, keySource, byteArrayOf(), timeoutMs)
+    requireEmptyNativeResult(
+        authenticate(AuthenticationProfile.ISO_AES,
+            if (application) KeyScope.ISO_APPLICATION else KeyScope.ISO_PICC,
+            keyNumber, application, keySource, byteArrayOf(), timeoutMs),
+        "Unexpected raw ISO AES authentication result payload",
+    )
 }
 
 /** Call one profile-specific raw JNI entrypoint under this channel's FIFO gate. */

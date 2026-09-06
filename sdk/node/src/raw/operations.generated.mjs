@@ -1,6 +1,6 @@
 /** Generated ABI operation inventory; do not edit. */
 export const ABI_VERSION = 1;
-export const MANIFEST_SHA256 = "f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff";
+export const MANIFEST_SHA256 = "15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596";
 export const OPERATIONS = Object.freeze({
   1001: Object.freeze({ name: "open", symbol: "df_open", surface: "runtime" }),
   1002: Object.freeze({ name: "close", symbol: "df_close", surface: "runtime" }),

@@ -1,4 +1,4 @@
-/** @file offline_key_derivation.c @brief Derive an AES key through the stable C99 ABI. */
+/** @file offline_key_derivation.c @brief Derive an AES key through the versioned C99 ABI v1. */
 #include <desfire.h>
 #include <stdio.h>
 

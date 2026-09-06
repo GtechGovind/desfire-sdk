@@ -1,7 +1,7 @@
 """Generated ABI operation inventory; do not edit."""
 
 ABI_VERSION = 1
-MANIFEST_SHA256 = "f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff"
+MANIFEST_SHA256 = "15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596"
 OPERATIONS = {
     1001: ('open', 'df_open', 'runtime'),
     1002: ('close', 'df_close', 'runtime'),

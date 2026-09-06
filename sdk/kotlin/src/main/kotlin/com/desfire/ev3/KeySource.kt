@@ -70,43 +70,101 @@ public class KeyRequest internal constructor(
 
 /** Synchronous key resolver used at the native authentication boundary before card I/O. */
 public fun interface KeyProvider {
-    /** Resolve exactly one exportable AES-128 key or throw a secret-free failure. */
+    /**
+     * Resolve exactly one exportable AES-128 key or throw a secret-free failure.
+     *
+     * Return a fresh, disposable array. Ownership transfers to the SDK, which clears the returned
+     * array after copying it into native secure storage.
+     */
     public fun resolve(request: KeyRequest): ByteArray
 }
 
 /**
  * Source of exactly one AES-128 authentication key.
  *
- * Constructors copy every array. Instances intentionally do not expose key bytes, implement data
- * class semantics, or include secrets in [toString].
+ * Constructors copy every array. Direct and derived sources are [AutoCloseable]; callers should
+ * close them after the admitted operation finishes so their owned secret arrays are overwritten.
+ * Instances intentionally do not expose key bytes, implement data class semantics, or include
+ * secrets in [toString]. Closing a source concurrently with an operation that uses it is invalid.
  */
 public sealed class KeySource private constructor() {
     /** One already resolved AES-128 key. */
-    public class Direct(key: ByteArray) : KeySource() {
-        internal val keyBytes = key.copyOf()
+    public class Direct(key: ByteArray) : KeySource(), AutoCloseable {
+        private var material = key.copyOf()
+        private var closed = false
+
+        internal val keyBytes: ByteArray
+            @Synchronized get() {
+                check(!closed) { "Direct key source is closed" }
+                return material
+            }
 
         init {
-            require(keyBytes.size == AES128_SIZE) { "An AES-128 key must contain sixteen bytes" }
+            if (material.size != AES128_SIZE) {
+                material.fill(0)
+                material = byteArrayOf()
+                throw IllegalArgumentException("An AES-128 key must contain sixteen bytes")
+            }
         }
 
         override fun toString(): String = "KeySource.Direct([REDACTED])"
+
+        /** Overwrite this source's owned AES key copy. */
+        @Synchronized
+        override fun close() {
+            if (closed) return
+            closed = true
+            material.fill(0)
+            material = byteArrayOf()
+        }
     }
 
     /** NXP AES-128 CMAC diversification from a master key and one through 31 input bytes. */
-    public class Derived(masterKey: ByteArray, diversification: ByteArray) : KeySource() {
-        internal val masterKeyBytes = masterKey.copyOf()
-        internal val diversificationBytes = diversification.copyOf()
+    public class Derived(masterKey: ByteArray, diversification: ByteArray) :
+        KeySource(), AutoCloseable {
+        private var masterMaterial = masterKey.copyOf()
+        private var diversificationMaterial = diversification.copyOf()
+        private var closed = false
+
+        internal val masterKeyBytes: ByteArray
+            @Synchronized get() {
+                check(!closed) { "Derived key source is closed" }
+                return masterMaterial
+            }
+
+        internal val diversificationBytes: ByteArray
+            @Synchronized get() {
+                check(!closed) { "Derived key source is closed" }
+                return diversificationMaterial
+            }
 
         init {
-            require(masterKeyBytes.size == AES128_SIZE) {
-                "An AES-128 master key must contain sixteen bytes"
-            }
-            require(diversificationBytes.size in 1..31) {
-                "NXP diversification input must contain one through 31 bytes"
+            if (masterMaterial.size != AES128_SIZE || diversificationMaterial.size !in 1..31) {
+                val message = if (masterMaterial.size != AES128_SIZE) {
+                    "An AES-128 master key must contain sixteen bytes"
+                } else {
+                    "NXP diversification input must contain one through 31 bytes"
+                }
+                masterMaterial.fill(0)
+                diversificationMaterial.fill(0)
+                masterMaterial = byteArrayOf()
+                diversificationMaterial = byteArrayOf()
+                throw IllegalArgumentException(message)
             }
         }
 
         override fun toString(): String = "KeySource.Derived([REDACTED])"
+
+        /** Overwrite the owned master-key and diversification copies. */
+        @Synchronized
+        override fun close() {
+            if (closed) return
+            closed = true
+            masterMaterial.fill(0)
+            diversificationMaterial.fill(0)
+            masterMaterial = byteArrayOf()
+            diversificationMaterial = byteArrayOf()
+        }
     }
 
     /**
@@ -176,8 +234,12 @@ internal class ProviderBridge(private val source: KeySource.Provider) {
             cancelled,
         )
         val resolved = source.provider.resolve(request)
-        require(resolved.size == 16) { "Key provider must return exactly sixteen bytes" }
-        return resolved.copyOf()
+        return try {
+            require(resolved.size == 16) { "Key provider must return exactly sixteen bytes" }
+            resolved.copyOf()
+        } finally {
+            resolved.fill(0)
+        }
     }
 }
 
@@ -208,7 +270,7 @@ public class AuthenticationInfo internal constructor(
     internal companion object {
         /** Decode the fixed 4 + 6 + 6 byte C ABI authentication result. */
         fun decode(bytes: ByteArray): AuthenticationInfo {
-            check(bytes.size == 16) { "Malformed EV2 authentication metadata" }
+            requireNativeResultSize(bytes, 16, "Malformed EV2 authentication metadata")
             return AuthenticationInfo(
                 bytes.copyOfRange(0, 4),
                 bytes.copyOfRange(4, 10),

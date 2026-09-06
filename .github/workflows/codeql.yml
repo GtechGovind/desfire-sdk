@@ -75,11 +75,12 @@ jobs:
             -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
           cmake --build build/codeql --parallel 2
 
-      - name: Verify Android compilation platform
+      - name: Install Android compilation platform
         if: matrix.language == 'java-kotlin'
         run: |
-          test -d "$ANDROID_SDK_ROOT/platforms/android-36"
-          test -d "$ANDROID_SDK_ROOT/build-tools/36.0.0"
+          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$sdkmanager"
+          "$sdkmanager" --install "platforms;android-37" "build-tools;37.0.0"
 
       - name: Build Kotlin/JVM and Android sources
         if: matrix.language == 'java-kotlin'
@@ -88,16 +89,10 @@ jobs:
           set -euo pipefail
           ./gradlew -p sdk/kotlin --dependency-verification strict \
             --no-daemon --no-build-cache compileKotlin
-          native_directory="$RUNNER_TEMP/codeql-jni"
-          for abi in arm64-v8a armeabi-v7a x86_64; do
-            mkdir -p "$native_directory/$abi"
-            for library in libdesfire_c.so libdesfire_jni.so libc++_shared.so; do
-              : > "$native_directory/$abi/$library"
-            done
-          done
           ./gradlew -p sdk/android --dependency-verification strict \
             --no-daemon --no-build-cache compileReleaseKotlin \
-            -PdesfireNativeDirectory="$native_directory"
+            :example-app:compileReleaseKotlin \
+            -x verifyNativeRuntime
 
       - name: Analyze source
         uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9

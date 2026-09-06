@@ -49,3 +49,26 @@ public class DesfireException(
     public val deliveryOutcome: Outcome?
         get() = Outcome.entries.firstOrNull { it.code == outcome }
 }
+
+/**
+ * A native invocation completed successfully, but its returned payload violated the Kotlin ABI
+ * shape.
+ *
+ * For card operations this is post-I/O evidence and must not be reported as a pre-transmission
+ * validation failure. Offline operations can raise the same exception without card I/O. Closing
+ * and reopening a card is recommended when the malformed result affects card session state.
+ */
+public class MalformedNativeResultException(message: String) : RuntimeException(message)
+
+/** Reject and clear a returned payload whose exact byte size differs from the ABI contract. */
+internal fun requireNativeResultSize(result: ByteArray, expected: Int, message: String) {
+    if (result.size != expected) {
+        result.fill(0)
+        throw MalformedNativeResultException(message)
+    }
+}
+
+/** Reject a returned payload when the ABI contract requires no result bytes. */
+internal fun requireEmptyNativeResult(result: ByteArray, message: String) {
+    requireNativeResultSize(result, 0, message)
+}

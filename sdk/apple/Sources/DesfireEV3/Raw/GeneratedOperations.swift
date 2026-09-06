@@ -10,7 +10,7 @@ public struct RawOperation: Sendable, Hashable {
 }
 
 public let desfireAbiVersion: UInt32 = 1
-public let desfireManifestSha256 = "f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff"
+public let desfireManifestSha256 = "15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596"
 public let desfireRawOperations: [RawOperation] = [
     RawOperation(id: 1001, name: "open", symbol: "df_open", surface: "runtime"),
     RawOperation(id: 1002, name: "close", symbol: "df_close", surface: "runtime"),

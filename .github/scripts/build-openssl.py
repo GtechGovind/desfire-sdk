@@ -70,7 +70,11 @@ def download(archive: Path) -> None:
     temporary = archive.with_suffix(".download")
     temporary.unlink(missing_ok=True)
     request = urllib.request.Request(OPENSSL_URL, headers={"User-Agent": "desfire-sdk-ci"})
-    with urllib.request.urlopen(request, timeout=120) as response, temporary.open("wb") as output:
+    # OPENSSL_URL is an internal HTTPS constant; the archive is checksum verified before use.
+    with urllib.request.urlopen(  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+        request,
+        timeout=120,
+    ) as response, temporary.open("wb") as output:
         shutil.copyfileobj(response, output)
     temporary.replace(archive)
 

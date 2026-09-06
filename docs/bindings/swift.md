@@ -12,13 +12,17 @@ Swift key providers resolve a scoped exportable AES-128 key asynchronously befor
 Binding copies are released and wiped on every exit, while Swift and operating-system copies
 remain outside that guarantee.
 
-The frozen library has 125 exports. The generated inventory fixes all 120 fallible C operations
-and the native manifest digest.
+The current ABI v1 baseline allowlists 125 exports. The generated inventory fixes all 120 fallible
+C operations and the native manifest digest.
 `Card`, `RawCard`, and `Offline` provide typed coverage for managed/runtime, expert raw, and all
 21 offline direct/provider entries. Swift providers resolve asynchronously inside FIFO admission;
 the binding then uses the equivalent direct-key C entry so no Swift concurrency crosses a
 synchronous C callback.
 
-The mobile release contains an XCFramework for iOS device and simulator architectures plus a
-SwiftPM package. CoreNFC session invalidation, tag loss, expiry, and rediscovery require
-physical-device acceptance before a production-qualified claim.
+The release tooling can assemble an XCFramework for iOS device and simulator architectures plus a
+SwiftPM package. No prebuilt Apple artifact is currently published. CoreNFC session invalidation,
+tag loss, expiry, and rediscovery require physical-device acceptance before a production-qualified
+claim.
+
+Offline transaction-MAC operations require complete authoritative TMI from the caller. Automatic
+EV3 TMI construction is unavailable.

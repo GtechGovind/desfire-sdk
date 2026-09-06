@@ -1,6 +1,6 @@
 /**
  * @file desfire.h
- * @brief Complete stable C99 DESFire EV3 ABI umbrella.
+ * @brief Complete versioned C99 DESFire EV3 ABI v1 umbrella.
  */
 #ifndef DESFIRE_H
 #define DESFIRE_H

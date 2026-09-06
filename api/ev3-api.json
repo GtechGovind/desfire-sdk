@@ -2787,7 +2787,7 @@
       "domain": "iso7816",
       "surface": "managed",
       "summary": "Update ISO binary content using the current ISO authentication state.",
-      "mutation": false,
+      "mutation": true,
       "sessionEffect": "none",
       "parameters": [
         {
@@ -2847,7 +2847,8 @@
       "documentation": "Update ISO binary content using the current ISO authentication state.",
       "deliveryRules": [
         "preserve_outcome",
-        "preserve_iso_status"
+        "preserve_iso_status",
+        "reconciliation_on_unknown"
       ]
     },
     {
@@ -2927,7 +2928,7 @@
       "domain": "iso7816",
       "surface": "managed",
       "summary": "Append a record with an ISO CLA 00 command.",
-      "mutation": false,
+      "mutation": true,
       "sessionEffect": "none",
       "parameters": [
         {
@@ -2981,7 +2982,8 @@
       "documentation": "Append a record with an ISO CLA 00 command.",
       "deliveryRules": [
         "preserve_outcome",
-        "preserve_iso_status"
+        "preserve_iso_status",
+        "reconciliation_on_unknown"
       ]
     },
     {
@@ -4583,7 +4585,7 @@
       "domain": "iso7816",
       "surface": "managed",
       "summary": "Execute the documented ISO UPDATE RECORD 0xDC or 0xDD variant.",
-      "mutation": false,
+      "mutation": true,
       "sessionEffect": "none",
       "parameters": [
         {
@@ -4655,7 +4657,8 @@
       "documentation": "Execute the documented ISO UPDATE RECORD 0xDC or 0xDD variant.",
       "deliveryRules": [
         "preserve_outcome",
-        "preserve_iso_status"
+        "preserve_iso_status",
+        "reconciliation_on_unknown"
       ]
     },
     {

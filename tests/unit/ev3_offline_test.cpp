@@ -2,10 +2,9 @@
  * @file ev3_offline_test.cpp
  * @brief Offline known-answer checks with explicit shared-AES scope and failure evidence.
  *
- * TMAC and non-published delegated DAM MAC expectations were computed independently with
- * OpenSSL CLI. Their input layouts follow NXP MF2DLHX0 rev 3.3 section 10.3.2.3 and the
- * supplied NXP Reader Library 7.11 implementation, respectively. The originality vector is
- * NXP AN12343 rev 1.1 table 44, a Light vector testing the shared construction. None of these
+ * TMAC and delegated DAM MAC expectations were computed independently with OpenSSL CLI from the
+ * public field encodings described by the cited product datasheet and application notes. The
+ * originality fixture is a published Light vector testing the shared construction. None of these
  * fixtures is claimed as a production EV3 card trace or an EV3 TMI schema.
  */
 #include <desfire/crypto/openssl.hpp>

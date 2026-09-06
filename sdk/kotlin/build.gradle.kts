@@ -5,7 +5,7 @@ repositories { mavenCentral() }
 kotlin { jvmToolchain(17) }
 dependencies { implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1") }
 
-val examples by sourceSets.creating {
+val examples = sourceSets.create("examples") {
     kotlin.srcDir("../../examples/kotlin")
     compileClasspath += sourceSets.main.get().output + configurations.runtimeClasspath.get()
     runtimeClasspath += output + compileClasspath
@@ -34,6 +34,9 @@ publishing {
     }
 }
 val nativeDirectory = providers.gradleProperty("desfireNativeDirectory")
+tasks.test {
+    failOnNoDiscoveredTests = false
+}
 tasks.register<JavaExec>("hostTest") {
     dependsOn(tasks.named("testClasses"))
     classpath = sourceSets["test"].runtimeClasspath

@@ -1,12 +1,18 @@
-# Security scan evidence
+# Historical security scan evidence
 
-This record covers the DESFire EV3 working tree on the macOS ARM64 host on 2026-09-06.
-The local qualification started before the repository's initial commit, so its retained evidence
-is bound to the source snapshot in `build/security-scan/source-manifest.sha256`.
-The manifest covers 373 of the 374 current non-ignored files and has SHA-256
+This is retained historical evidence from the macOS ARM64 qualification run on 2026-09-06. It is
+associated with source revision `0f3b733f27b73481f7b26cf9402b64ccfc256e75` and canonical API hash
+`f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff`; it does not describe the
+current uncommitted source. All uses of “current” below refer to that historical scan snapshot.
+Fresh source, dependency, sanitizer, package, and host-test evidence remains pending for the next
+committed revision.
+
+The retained evidence is bound to the historical source snapshot in
+`build/security-scan/source-manifest.sha256`. The manifest covers 373 of the 374 then-existing
+non-ignored files and has SHA-256
 `40d387ccab9bd702ce1e0e076fa48ce1841b19e807a79eab2c473cc794f9cbc9`.
 It excludes this report because embedding the manifest hash in a file covered by that manifest
-would be self-referential. Gitleaks separately scans all 374 files, including this report.
+would be self-referential. Gitleaks separately scanned all 374 files, including this report.
 
 ## Result
 
@@ -59,16 +65,15 @@ translation units including JNI and Node.
 | Syft | 1.51.1 | Current-source CycloneDX SBOM |
 | Grype | 0.118.0 | Current-source, Gradle selected, and managed-runtime SBOMs |
 | npm | 11.12.1 | Node package-lock audit |
-| Gradle | Repository wrapper 8.14.5 | Android/Kotlin dependency resolution only |
+| Gradle | Historical proof executable 8.14.5 | Android/Kotlin dependency resolution only |
 | CMake / Ninja | 4.1.2 / 1.13.2 | C++26 build and test |
 | OpenSSL | 3.6.4 | Host provider used by the proof build |
 
-The original dependency proof used the Gradle 8.14.5 executable from the sibling `../TR`
-checkout. The repository now carries its own Gradle 8.14.5 wrapper with the upstream distribution
-and wrapper-JAR checksums pinned, plus strict SHA-256 dependency-verification metadata for both
-managed build roots. The same Android and Kotlin dependency tasks pass through that wrapper with
-`--dependency-verification strict --no-build-cache`. The retained advisory counts still describe
-the resolved versions in the current source.
+The historical dependency proof used an external Gradle 8.14.5 executable. The repository now
+carries a Gradle 9.6.0 wrapper with the upstream distribution and wrapper-JAR checksums pinned,
+plus strict SHA-256 dependency-verification metadata for both managed build roots. The retained
+advisory counts below apply only to the historical Gradle 8.14.5 and Android Gradle Plugin 8.13.2
+graph. A fresh scan of the current graph is pending.
 
 ## SAST and manual review
 

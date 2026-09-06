@@ -8,3 +8,8 @@ OpenSSL is a separately licensed dependency under Apache-2.0. Source distributio
 do not include OpenSSL source. Android binary distributions statically link
 OpenSSL and include its license and notice in their distribution metadata.
 Other platform runtimes retain their upstream licenses; see docs/dependencies.md.
+
+The repository includes the Gradle wrapper under Apache-2.0. The Android showcase depends on
+Apache-2.0 Kotlin, AndroidX, Jetpack Compose, Material 3, Lifecycle, Activity, and coroutines
+components. Their versions and verified artifact checksums are recorded in the Gradle build files
+and dependency-verification metadata.

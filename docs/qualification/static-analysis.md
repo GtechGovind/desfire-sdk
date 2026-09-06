@@ -1,8 +1,10 @@
 # Static analysis evidence
 
-This record covers the native production implementation on the macOS ARM64 host on
-2026-09-06. It supplements compiler, sanitizer, replay, and hardware evidence; it does not
-replace any of those evidence classes.
+This historical record covers source revision
+`0f3b733f27b73481f7b26cf9402b64ccfc256e75` on the macOS ARM64 host on 2026-09-06. It does not
+describe the current uncommitted source. Fresh commit-bound analysis remains pending. The record
+supplements compiler, sanitizer, replay, and hardware evidence; it does not replace any of those
+evidence classes.
 
 ## Scope
 

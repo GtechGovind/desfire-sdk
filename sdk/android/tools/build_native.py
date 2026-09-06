@@ -100,7 +100,11 @@ def main():
         archive = build_root / f'openssl-{OPENSSL_VERSION}.tar.gz'
         if not archive.exists():
             temporary = archive.with_suffix('.download')
-            urllib.request.urlretrieve(OPENSSL_URL, temporary)
+            # OPENSSL_URL is an internal HTTPS constant; the archive is verified below.
+            urllib.request.urlretrieve(  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+                OPENSSL_URL,
+                temporary,
+            )
             temporary.replace(archive)
     archive = archive.resolve()
     if checksum(archive) != OPENSSL_SHA256:
@@ -172,10 +176,12 @@ def main():
             allowed = set(artifacts) | {'libc.so', 'libm.so', 'libdl.so', 'liblog.so'}
             if set(needed) - allowed:
                 raise RuntimeError(f'Unpackaged dependency in {target}: {needed}')
-            if abi == 'arm64-v8a':
+            if abi in {'arm64-v8a', 'x86_64'}:
                 loads = [line for line in headers.splitlines() if line.strip().startswith('LOAD')]
                 if not loads or any(int(line.split()[-1], 16) < 16384 for line in loads):
-                    raise RuntimeError(f'ARM64 binary is not aligned for 16 KB Android pages: {target}')
+                    raise RuntimeError(
+                        f'{abi} binary is not aligned for 16 KB Android pages: {target}'
+                    )
             abi_evidence[name] = {'sha256': checksum(target), 'size': target.stat().st_size,
                                   'elf': headers}
         exported = subprocess.check_output([toolchain / 'bin/llvm-nm', '-D', '--defined-only',
@@ -208,9 +214,17 @@ def main():
             'Java_com_desfire_ev3_offline_OfflineNative_invoke',
             'Java_com_desfire_ev3_offline_OfflineNative_invokeProvider',
         )
-        for symbol in required_jni:
-            if symbol not in exported:
-                raise RuntimeError(f'JNI binary is missing required entry point: {symbol}')
+        expected_jni = set(required_jni)
+        actual_jni = {
+            match.group(1)
+            for match in re.finditer(r'\b(Java_[A-Za-z0-9_]+)$', exported, re.M)
+        }
+        if actual_jni != expected_jni:
+            raise RuntimeError(
+                'Android JNI exports differ from the frozen entry-point set: '
+                f'missing={sorted(expected_jni - actual_jni)}, '
+                f'extra={sorted(actual_jni - expected_jni)}'
+            )
         c_exports = subprocess.check_output([toolchain / 'bin/llvm-nm', '-D', '--defined-only',
                                             destination / 'libdesfire_c.so'], text=True)
         expected_c_exports = {

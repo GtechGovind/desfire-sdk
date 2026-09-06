@@ -13,6 +13,11 @@ The built-in `nxp_aes128` implementation provides the documented NXP AES-128
 diversification construction. It never infers a UID, application ID, system identifier,
 or byte order; those bytes belong to the caller's derivation context.
 
+The portable Kotlin SDK also provides the opt-in `GKeyDerivation` compatibility strategy and a
+caller-owned `GKeyProvider` intended for one scoped session. It embeds no seeds or default keys.
+Its exact layout, synthetic
+vectors, and security boundary are documented in [GKey compatibility derivation](gkey-derivation.md).
+
 Provider callbacks write into SDK-owned storage and may not return or retain pointers.
 Temporary SDK copies are wiped on all exits. References, context bytes, master keys,
 derived keys, session keys, and cryptograms are excluded from logs and diagnostics.

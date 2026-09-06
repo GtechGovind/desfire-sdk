@@ -8,16 +8,29 @@ there is no silent language downgrade.
 
 ## Native dependencies
 
-- CMake 3.25 or newer and a working C/C++ compiler; Ninja is used by the presets.
-- OpenSSL 3.5+ Crypto for the supplied provider and C ABI. OpenSSL implementation types
-  do not appear in public protocol headers. Host builds normally link the system
-  OpenSSL runtime; package it according to the target platform's deployment rules.
-- PC/SC is optional. macOS uses its framework, Linux uses `libpcsclite` through pkg-config,
-  and Windows uses WinSCard. Disable it with `-DDESFIRE_BUILD_PCSC=OFF` for callback-only
-  integration. PC/SC compilation is separate from reader interoperability testing.
-- JNI is optional: enable `-DDESFIRE_BUILD_JNI=ON` and provide a JDK. See the Kotlin README.
-- Doxygen is required for the `docs` target. Documentation warnings fail the build; `docs-check`
-  separately verifies authored declarations and out-of-line definitions.
+| Dependency | Required for | Notes |
+| --- | --- | --- |
+| CMake 3.25+ and C/C++ compiler | Every native build | Ninja is used by repository presets |
+| OpenSSL Crypto 3.5+ | Supplied crypto provider and C ABI | Public core headers contain no OpenSSL implementation types |
+| PC/SC SDK | Optional desktop PC/SC transport | macOS framework, Linux `libpcsclite` through pkg-config, Windows WinSCard |
+| JDK | Optional Kotlin/JNI bridge | Enable `DESFIRE_BUILD_JNI` and follow the Kotlin guide |
+| Doxygen | Generated native API reference | Warnings fail `docs`; authored-contract checks run in `docs-check` |
+
+PC/SC is enabled by default. Disable it with `-DDESFIRE_BUILD_PCSC=OFF` for callback-only or
+card-free integration. Compiling PC/SC support is separate from reader interoperability testing.
+Host builds normally link the system OpenSSL runtime; package it according to the deployment
+platform's rules.
+
+## Choose a native configuration
+
+| Goal | Command |
+| --- | --- |
+| Default C++26 release | `cmake --preset release` |
+| Maintained C++23 compatibility | `cmake --preset compat23` |
+| Debug tests | `cmake --preset debug` |
+| ASan and UBSan | `cmake --preset sanitized` |
+| ThreadSanitizer | `cmake --preset thread-sanitized` |
+| Custom card-free build | Use the command below |
 
 ```sh
 cmake -S . -B build/local -G Ninja -DCMAKE_BUILD_TYPE=Release \
@@ -46,13 +59,28 @@ For the modern API, link `desfire::ev3_core`, the selected transport, and crypto
 `Card::connect()` takes shared ownership of an already activated `CardTransport` and a
 `CryptoProvider`. No reader is implicitly selected.
 
+| Installed target | Purpose |
+| --- | --- |
+| `desfire::foundation` | Byte, result, error, secret, transport, and crypto contracts |
+| `desfire::ev3_core` | Modern typed EV3 protocol and managed Card |
+| `desfire::crypto_openssl` | Optional OpenSSL primitive provider |
+| `desfire::transport_callback` | Adapter for an application-owned reader SDK |
+| `desfire::transport_replay` | Deterministic request/response transport for tests |
+| `desfire::transport_pcsc` | Optional desktop PC/SC discovery and exchange |
+| `desfire::c` | Versioned C99 ABI v1 |
+| `desfire::cpp17` | Header-only C++17 facade over the C ABI |
+
+See [reader integration](reader-integration.md) for a complete read-only PC/SC flow and callback
+adapter contract.
+
 ## Android and Apple
 
 Android has a reproducible NDK build script that verifies the pinned OpenSSL source
-checksum and builds ARM64, ARMv7 and x86_64 JNI/C runtimes. The AAR also contains portable Kotlin
-classes and the IsoDep adapter. Follow `sdk/android/README.md`; native build outputs remain
-in ignored build directories. The Android minimum target is API 23, but API 23 itself
-has not been runtime-qualified in this session.
+checksum and builds ARM64, ARMv7 and x86_64 JNI/C runtimes. The AAR contains the Android IsoDep
+adapter and native runtime; the portable Kotlin JAR remains a separate Gradle API dependency.
+Follow `sdk/android/README.md`; native build outputs remain in ignored build directories. The
+Android packages compile and target Android 17 / API 37 with a minimum runtime API of 23. API 23
+itself has not been runtime-qualified in this session.
 
 Swift is a Swift Package facade over the same C ABI. The portable `DesfireEV3` and separate
 `DesfireEV3CoreNFC` products compile for iOS 16 device and simulator targets. Build OpenSSL and

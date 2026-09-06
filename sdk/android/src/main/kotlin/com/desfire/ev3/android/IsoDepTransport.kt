@@ -9,7 +9,6 @@ import com.desfire.ev3.Framing
 import com.desfire.ev3.Outcome
 import com.desfire.ev3.TransportLimits
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Android ISO-DEP adapter, separate from the portable Kotlin and JNI SDK.
@@ -19,7 +18,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * this adapter never reconnects or resends a command with uncertain delivery.
  */
 class IsoDepTransport(private val isoDep: IsoDep) : CardTransport, AutoCloseable {
-    private val closed = AtomicBoolean(false)
+    @Volatile
+    private var closed = false
     override val limits: TransportLimits
 
     init {
@@ -31,7 +31,7 @@ class IsoDepTransport(private val isoDep: IsoDep) : CardTransport, AutoCloseable
     override fun exchange(frame: ByteArray, timeoutMs: Int): ByteArray {
         if (Looper.myLooper() == Looper.getMainLooper()) throw DesfireException(
             12, Outcome.NOT_SENT.code, 0, "NFC exchange cannot run on the Android main thread")
-        if (closed.get() || !isoDep.isConnected) throw DesfireException(3, Outcome.NOT_SENT.code,
+        if (closed || !isoDep.isConnected) throw DesfireException(3, Outcome.NOT_SENT.code,
             0, "Android NFC connection is closed")
         require(timeoutMs > 0)
         if (frame.size > limits.maxTransmit) throw DesfireException(1, Outcome.NOT_SENT.code,
@@ -44,11 +44,13 @@ class IsoDepTransport(private val isoDep: IsoDep) : CardTransport, AutoCloseable
         try {
             return isoDep.transceive(frame)
         } catch (_: TagLostException) {
-            close()
-            throw DesfireException(3, Outcome.UNKNOWN.code, 0, "NFC tag was lost during exchange")
+            throw closeAfterExchangeFailure(
+                DesfireException(3, Outcome.UNKNOWN.code, 0, "NFC tag was lost during exchange"),
+            )
         } catch (_: IOException) {
-            close()
-            throw DesfireException(2, Outcome.UNKNOWN.code, 0, "Android NFC exchange failed")
+            throw closeAfterExchangeFailure(
+                DesfireException(2, Outcome.UNKNOWN.code, 0, "Android NFC exchange failed"),
+            )
         }
     }
 
@@ -64,9 +66,20 @@ class IsoDepTransport(private val isoDep: IsoDep) : CardTransport, AutoCloseable
     }
 
     /** Idempotently release Android NFC resources; card-operation evidence is returned separately. */
+    @Synchronized
     override fun close() {
-        if (closed.compareAndSet(false, true)) {
-            try { isoDep.close() } catch (_: IOException) { /* No command is issued by close. */ }
+        if (closed) return
+        isoDep.close()
+        closed = true
+    }
+
+    /** Preserve the primary UNKNOWN outcome while retaining any failed close for diagnostics. */
+    private fun closeAfterExchangeFailure(failure: DesfireException): DesfireException {
+        try {
+            close()
+        } catch (closeFailure: IOException) {
+            failure.addSuppressed(closeFailure)
         }
+        return failure
     }
 }

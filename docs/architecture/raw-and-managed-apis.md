@@ -1,9 +1,9 @@
 # Raw and managed APIs
 
-Raw APIs are an expert escape hatch for complete transport access. They preserve opcode,
-payload, framing, response status, delivery outcome, and configured continuation behavior.
-They perform bounds and lifecycle validation but do not turn an unknown payload into a
-supported typed feature.
+Raw APIs provide expert access to the configured native or ISO exchange path. They preserve
+opcode, payload, framing, response status, delivery outcome, and configured continuation
+behavior within declared transport and allocation bounds. They perform lifecycle validation but
+do not turn an unknown payload into a supported typed feature.
 
 Secure raw requests explicitly identify the bytes that remain clear, the bytes protected
 as command data, the expected response protection, and the active session family. The SDK

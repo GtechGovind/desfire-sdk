@@ -1,6 +1,6 @@
 # Swift facade for DESFire EV3
 
-This Swift 6 package calls the stable C ABI. Protocol encoding, AES security,
+This Swift 6 package calls the versioned C ABI v1. Protocol encoding, AES security,
 state validation and native/ISO transport handling live in the C++ core. Each
 card has a serial background queue; its async methods do not perform blocking
 reader I/O on the caller's main thread.
@@ -56,13 +56,14 @@ concurrent cancellation safely. `reset` is explicit physical reader work;
 
 Choose `.native` for raw native framing or `.isoWrapped` for an APDU-capable
 reader. True ISO methods such as `iso_get_challenge` require `.isoWrapped` and
-send actual ISO commands through their separate core path. The native maximum
+send ISO 7816 APDUs through their separate core path. The native maximum
 frame defaults to 60 bytes and should be changed only for a verified reader/card
 configuration. Input identifiers and protocol ranges are checked by the C ABI
 before I/O. Communication settings use the `CommunicationMode` enum.
 
 Method and parameter names preserve the C ABI spelling for cross-language
-traceability. The frozen library has 125 exports, and the package inventory contains all **120
+traceability. The current ABI v1 baseline allowlists 125 exports, and the package inventory
+contains all **120
 fallible operations** in its C ABI manifest:
 managed/runtime, offline, and expert raw surfaces. `Card` exposes every managed operation through
 62 generated C-shaped methods plus typed authentication, key-source, structured-management, and
@@ -101,5 +102,8 @@ active cancellation, closing during I/O, callback ownership/reentry, redacted
 reader exceptions, offline transaction known answers, and 120-operation generated ABI parity.
 Swift 6 device and simulator compile checks use complete strict concurrency with warnings as
 errors. This is host/source validation. A signed iOS binary, physical CoreNFC exchange, EV3 card
-tests, reader certification, and production qualification are not supplied by this package. Unsupported SDM
-provisioning and other unverified fields remain explicit core errors.
+tests, reader certification, and production qualification are not supplied by this package.
+
+Offline transaction-MAC operations require complete authoritative TMI from the caller; automatic
+EV3 TMI construction is unavailable. Unsupported SDM provisioning and other unverified fields
+remain explicit core errors.

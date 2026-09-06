@@ -11,12 +11,20 @@ those claims require the separate evidence listed in `docs/testing.md`.
 
 - Added contributor, support, conduct, and governance policies plus structured issue and pull
   request templates.
-- Expanded README guidance for interface selection, key integration, recovery behavior, and
-  card-free verification.
+- Rebuilt the README as a developer onboarding guide with architecture, interface selection,
+  capabilities, build/install steps, reader integration, key handling, transaction recovery,
+  binding evidence, and explicit qualification boundaries.
+- Added a documentation index and a complete read-only PC/SC/callback reader integration guide.
 - Added cross-platform native and binding pipelines, sanitizer stress runs, CodeQL, dependency
   review, scheduled supply-chain scanning, immutable action pins, and release provenance.
 - Added a checksum-pinned Gradle wrapper and strict dependency-verification metadata for the
   Kotlin/JVM and Android builds.
+
+### Changed
+
+- Aligned SDK build commands with the repository Gradle wrapper and strict dependency verification.
+- Refreshed Python, Node, native-platform, ABI, dependency, and qualification documentation to
+  match the current verified implementation revision.
 
 ### Fixed
 
