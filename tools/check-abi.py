@@ -51,10 +51,11 @@ def library_symbols(path: pathlib.Path) -> set[str]:
     completed = subprocess.run(command, text=True, capture_output=True, check=False)
     if completed.returncode:
         raise RuntimeError(completed.stderr.strip() or "nm failed")
+    symbol_pattern = re.compile(r"\b_?(df_[a-z0-9_]+)(?:@@?[A-Za-z0-9_.-]+)?$")
     return {
         match.group(1)
         for line in completed.stdout.splitlines()
-        if (match := re.search(r"\b_?(df_[a-z0-9_]+)$", line.strip()))
+        if (match := symbol_pattern.search(line.strip()))
     }
 
 
