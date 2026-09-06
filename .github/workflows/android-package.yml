@@ -42,10 +42,10 @@ jobs:
           sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           test -x "$sdkmanager"
           "$sdkmanager" --channel=3 --install \
-            "platforms;android-37" \
+            "platforms;android-37.0" \
             "build-tools;37.0.0" \
             "ndk;29.0.14206865"
-          test -d "$ANDROID_SDK_ROOT/platforms/android-37"
+          test -d "$ANDROID_SDK_ROOT/platforms/android-37.0"
           test -d "$ANDROID_SDK_ROOT/build-tools/37.0.0"
           ndk="$ANDROID_SDK_ROOT/ndk/29.0.14206865"
           test -f "$ndk/source.properties"
@@ -108,7 +108,7 @@ jobs:
       - name: Execute JNI and showcase smoke tests on a 16 KiB Android emulator
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
-          api-level: 37
+          api-level: '37.0'
           target: google_apis_ps16k
           channel: canary
           arch: x86_64
