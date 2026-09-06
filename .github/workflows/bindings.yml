@@ -207,7 +207,7 @@ jobs:
       - name: Verify npm package contents
         shell: bash
         run: |
-          npm --prefix sdk/node pack --dry-run
+          (cd sdk/node && npm pack --dry-run)
           if [[ "${{ matrix.node }}" == "20" ]]; then
             mkdir -p build/node-dist
             (cd sdk/node && npm pack --pack-destination "$PWD/../../build/node-dist")
