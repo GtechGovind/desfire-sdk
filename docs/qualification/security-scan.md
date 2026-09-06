@@ -1,10 +1,10 @@
 # Security scan evidence
 
 This record covers the DESFire EV3 working tree on the macOS ARM64 host on 2026-09-06.
-The repository did not yet have a `HEAD` commit, so the evidence is bound to the current
-working-tree snapshot by `build/security-scan/source-manifest.sha256` rather than a commit ID.
+The local qualification started before the repository's initial commit, so its retained evidence
+is bound to the source snapshot in `build/security-scan/source-manifest.sha256`.
 The manifest covers 369 of the 370 current non-ignored files and has SHA-256
-`ffc2103e1355dade981bf04f3694c12e0ec8cbb5a4f85af495459aa14af642c9`.
+`0c7c634eff8fda6099b7075600e0c0b061a127ea817ec5bf26dcdaaa38b84b32`.
 It excludes this report because embedding the manifest hash in a file covered by that manifest
 would be self-referential. Gitleaks separately scans all 370 files, including this report.
 
@@ -15,6 +15,10 @@ the Node lockfile, the four-package Kotlin/Android release runtime graph, or the
 The source scan confirmed and fixed one same-channel ISO callback reentry deadlock and one reset
 exception-boundary defect. The current source then passed the normal, AddressSanitizer,
 UndefinedBehaviorSanitizer, and ThreadSanitizer suites.
+
+The first hosted CodeQL pass also identified unsafe standard-library tar extraction and a
+potential regular-expression denial of service in repository tooling. Archive extraction now
+writes only validated regular files, and documentation detection uses bounded linear scans.
 
 The Gradle build and Android instrumentation tool graph is not advisory-clean. Its selected
 components produce 85 advisory matches across 20 package/version pairs and 47 unique GHSA IDs.
@@ -201,7 +205,7 @@ and CVE aliases, reachability, fixed versions, and disposition.
 
 | Evidence | SHA-256 |
 | --- | --- |
-| `build/security-scan/source-manifest.sha256` | `ffc2103e1355dade981bf04f3694c12e0ec8cbb5a4f85af495459aa14af642c9` |
+| `build/security-scan/source-manifest.sha256` | `0c7c634eff8fda6099b7075600e0c0b061a127ea817ec5bf26dcdaaa38b84b32` |
 | `build/security-scan/gitleaks.json` | `37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570` |
 | `build/security-scan/semgrep.json` | `f8ab24ace967dfa1b44de1c5f7c61861bbcc519add022b71e4206fdb7d8d0785` |
 | `build/security-scan/clang-analyzer.log` | `12cc5aa0eb64fc0cb12f124cb9d910641355041ad2da0a7411e07335111b6f2d` |
@@ -221,7 +225,7 @@ and CVE aliases, reachability, fixed versions, and disposition.
 | `build/security-scan/gradle-selected-current.cdx.json` | `adbfaa65c4f26654b70a2b4cd04d5981c190eb86f5bdc4d334e1e6b0c529b5ad` |
 | `build/security-scan/grype-gradle-selected-current.json` | `f690b9a0d3f629ff4e1312827018174e42ef55c99bb29798b8effaba916ec34a` |
 | `gradle/wrapper/gradle-wrapper.jar` | `7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172` |
-| `sdk/android/gradle/verification-metadata.xml` | `6e108e54ba026b108fdaf5642b2d20921cf8a0fa93a97cfa0676957855b59ae5` |
+| `sdk/android/gradle/verification-metadata.xml` | `4b9167942b09380721bf72a73d6fce8faf43d63613a93dd19ce7649480bbf8f7` |
 | `sdk/kotlin/gradle/verification-metadata.xml` | `ee3f048db9ffa8962635f14c1eb0f0049a36823f28fc9d749fab0f3caedadfc2` |
 
 ## Limits and release decision

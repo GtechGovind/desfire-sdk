@@ -77,6 +77,7 @@ namespace desfire::ev3::security::standard_aes {
         : crypto_(std::move(crypto)), session_key_(std::move(material.session_key)),
           iv_(aes_block_size) {}
 
+    /** @copydoc Session::create */
     Result<std::unique_ptr<Session>> Session::create(std::shared_ptr<CryptoProvider> crypto,
                                                      AuthenticationMaterial material) {
         if (!crypto || material.session_key.size() != aes_block_size) {
@@ -85,6 +86,7 @@ namespace desfire::ev3::security::standard_aes {
         return std::unique_ptr<Session>(new Session(std::move(crypto), std::move(material)));
     }
 
+    /** @copydoc Session::calculate_cmac */
     Result<SecureBuffer> Session::calculate_cmac(ByteView input) {
         try {
             const std::array<Byte, aes_block_size> zero{};
@@ -136,6 +138,7 @@ namespace desfire::ev3::security::standard_aes {
         }
     }
 
+    /** @copydoc Session::prepare_cmac_command */
     Result<Bytes> Session::prepare_cmac_command(Byte command, ByteView header, ByteView data,
                                                 bool transmit_mac) {
         if (phase_ != Phase::ready) {
@@ -176,18 +179,22 @@ namespace desfire::ev3::security::standard_aes {
         }
     }
 
+    /** @copydoc Session::prepare_plain */
     Result<Bytes> Session::prepare_plain(Byte command, ByteView header, ByteView data) {
         return prepare_cmac_command(command, header, data, false);
     }
 
+    /** @copydoc Session::accept_plain_response */
     Result<Bytes> Session::accept_plain_response(const native::raw::Response& response) {
         return verify_response(response);
     }
 
+    /** @copydoc Session::prepare_mac */
     Result<Bytes> Session::prepare_mac(Byte command, ByteView header, ByteView data) {
         return prepare_cmac_command(command, header, data, !data.empty());
     }
 
+    /** @copydoc Session::prepare_full */
     Result<Bytes> Session::prepare_full(Byte command, ByteView header, ByteView data) {
         if (data.empty()) {
             return prepare_cmac_command(command, header, data, false);
@@ -257,6 +264,7 @@ namespace desfire::ev3::security::standard_aes {
         }
     }
 
+    /** @copydoc Session::verify_response */
     Result<Bytes> Session::verify_response(const native::raw::Response& response) {
         if (phase_ != Phase::awaiting_response) {
             return Error{ErrorCode::session_invalid,
@@ -310,6 +318,7 @@ namespace desfire::ev3::security::standard_aes {
         }
     }
 
+    /** @copydoc Session::verify_and_decrypt_full_response */
     Result<Bytes>
     Session::verify_and_decrypt_full_response(const native::raw::Response& response,
                                               std::optional<std::size_t> expected_size) {
@@ -405,6 +414,7 @@ namespace desfire::ev3::security::standard_aes {
         }
     }
 
+    /** @copydoc Session::invalidate */
     void Session::invalidate() noexcept {
         wipe(session_key_.mutable_view());
         wipe(iv_.mutable_view());

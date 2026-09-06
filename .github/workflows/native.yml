@@ -41,7 +41,7 @@ jobs:
           - platform: windows
             name: Windows
             runner: windows-2025
-            generator: Visual Studio 17 2022
+            generator: Visual Studio 18 2026
             crypto-library: libcrypto.lib
             package: false
 
@@ -53,7 +53,9 @@ jobs:
 
       - name: Install Linux PC/SC prerequisites
         if: matrix.platform == 'linux'
-        run: sudo apt-get update && sudo apt-get install --yes clang libpcsclite-dev pkg-config
+        run: >-
+          sudo apt-get update && sudo apt-get install --yes
+          gcc-14 g++-14 libpcsclite-dev pkg-config
 
       - name: Check host toolchain
         shell: bash
@@ -62,6 +64,13 @@ jobs:
           python3 --version
           perl -v
           if [[ "${{ matrix.platform }}" != "windows" ]]; then make --version; fi
+
+      - name: Install pinned native Windows Perl
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          choco install strawberryperl --version=5.42.0.1 --yes --no-progress --limit-output
+          & 'C:\Strawberry\perl\bin\perl.exe' -MLocale::Maketext::Simple -MIPC::Cmd -e 'exit 0'
 
       - name: Restore verified OpenSSL source archive
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -80,12 +89,14 @@ jobs:
           --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
           --jobs 4
 
-      - name: Select Clang for Linux C++26
+      - name: Select GCC 14 for Linux C++26
         if: matrix.platform == 'linux' && matrix.standard == 26
         shell: bash
         run: |
-          echo "CC=clang" >> "$GITHUB_ENV"
-          echo "CXX=clang++" >> "$GITHUB_ENV"
+          gcc-14 --version
+          g++-14 --version
+          echo "CC=gcc-14" >> "$GITHUB_ENV"
+          echo "CXX=g++-14" >> "$GITHUB_ENV"
 
       - name: Configure native SDK
         shell: bash

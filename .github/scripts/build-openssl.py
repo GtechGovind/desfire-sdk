@@ -76,26 +76,33 @@ def download(archive: Path) -> None:
 
 
 def extract(archive: Path, directory: Path) -> Path:
-    """Extract a verified archive after rejecting traversal and special devices."""
+    """Extract a verified archive without delegating paths or links to ``tarfile``."""
     source = directory / f"openssl-{OPENSSL_VERSION}"
     if source.is_dir():
         return source
     directory.mkdir(parents=True, exist_ok=True)
+    root = directory.resolve()
     with tarfile.open(archive) as package:
         for member in package.getmembers():
-            destination = (directory / member.name).resolve()
-            if not destination.is_relative_to(directory.resolve()):
+            destination = (root / member.name).resolve()
+            if not destination.is_relative_to(root):
                 raise RuntimeError("OpenSSL archive contains path traversal")
-            if member.isdev():
-                raise RuntimeError("OpenSSL archive contains a special device")
             if member.issym() or member.islnk():
-                link_base = destination.parent if member.issym() else directory.resolve()
-                if not (link_base / member.linkname).resolve().is_relative_to(directory.resolve()):
-                    raise RuntimeError("OpenSSL archive link escapes the extraction directory")
-        if sys.version_info >= (3, 12):
-            package.extractall(directory, filter="fully_trusted")
-        else:
-            package.extractall(directory)
+                raise RuntimeError("OpenSSL archive links are not permitted")
+            if member.isdir():
+                destination.mkdir(parents=True, exist_ok=True)
+                continue
+            if not member.isfile():
+                raise RuntimeError("OpenSSL archive contains a special entry")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if destination.exists() or destination.is_symlink():
+                raise RuntimeError("OpenSSL archive contains a duplicate path")
+            stream = package.extractfile(member)
+            if stream is None:
+                raise RuntimeError("OpenSSL archive file has no data")
+            with stream, destination.open("xb") as output:
+                shutil.copyfileobj(stream, output)
+            destination.chmod(member.mode & 0o777)
     return source
 
 
@@ -143,12 +150,42 @@ def visual_studio_environment() -> Path:
     return environment
 
 
+def windows_perl() -> Path:
+    """Return a native Windows Perl with the core modules required by OpenSSL."""
+    configured = os.environ.get("OPENSSL_PERL")
+    candidates = [
+        Path(configured) if configured else None,
+        Path("C:/Strawberry/perl/bin/perl.exe"),
+    ]
+    for candidate in candidates:
+        if candidate is None or not candidate.is_file():
+            continue
+        completed = subprocess.run(
+            [
+                str(candidate),
+                "-MLocale::Maketext::Simple",
+                "-MIPC::Cmd",
+                "-e",
+                "exit 0",
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if completed.returncode == 0:
+            return candidate
+    raise RuntimeError(
+        "A native Windows Perl with Locale::Maketext::Simple and IPC::Cmd is required"
+    )
+
+
 def build_windows(
     source: Path, prefix: Path, configuration: list[str], jobs: int, log: Path
 ) -> None:
     """Build OpenSSL inside one MSVC developer command environment."""
     developer_environment = visual_studio_environment()
-    configure = subprocess.list2cmdline(["perl", "Configure", *configuration])
+    perl = windows_perl()
+    configure = subprocess.list2cmdline([str(perl), "Configure", *configuration])
     script = source.parent / "build-openssl.cmd"
     script.write_text(
         "@echo off\n"

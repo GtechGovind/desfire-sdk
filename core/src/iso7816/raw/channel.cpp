@@ -50,18 +50,22 @@ namespace desfire::ev3::iso7816::raw {
         return std::unique_ptr<Channel>(new Channel(std::move(transport)));
     }
 
+    /** @copydoc Channel::capabilities */
     TransportCapabilities Channel::capabilities() const {
         return transport_->capabilities();
     }
 
+    /** @copydoc Channel::generation */
     std::uint64_t Channel::generation() const noexcept {
         return transport_->generation();
     }
 
+    /** @copydoc Channel::cancel */
     void Channel::cancel() noexcept {
         transport_->cancel();
     }
 
+    /** @copydoc Channel::reset */
     Result<void> Channel::reset() {
         const std::scoped_lock lock(operation_mutex_);
         if (operation_active_) {
@@ -75,6 +79,7 @@ namespace desfire::ev3::iso7816::raw {
         }
     }
 
+    /** @copydoc Channel::exchange */
     Result<Response> Channel::exchange(const Apdu& apdu, const ExchangeOptions& options,
                                        const Limits& limits) {
         const std::scoped_lock lock(operation_mutex_);

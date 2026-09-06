@@ -35,6 +35,7 @@ namespace desfire::ev3::iso7816::checked {
 
     } // namespace
 
+    /** @copydoc BinaryAddress::current_file */
     Result<BinaryAddress> BinaryAddress::current_file(std::uint32_t offset) {
         if (offset > 0x7FFF) {
             return invalid("ISO current-file offset exceeds fifteen bits");
@@ -42,6 +43,7 @@ namespace desfire::ev3::iso7816::checked {
         return BinaryAddress(static_cast<Byte>(offset >> 8U), static_cast<Byte>(offset));
     }
 
+    /** @copydoc BinaryAddress::short_file */
     Result<BinaryAddress> BinaryAddress::short_file(std::uint32_t identifier,
                                                     std::uint32_t offset) {
         if (identifier > 31 || offset > 255) {
@@ -50,6 +52,7 @@ namespace desfire::ev3::iso7816::checked {
         return BinaryAddress(static_cast<Byte>(0x80U | identifier), static_cast<Byte>(offset));
     }
 
+    /** @copydoc KeyReference::application */
     Result<KeyReference> KeyReference::application(std::uint32_t number) {
         if (number > 13) {
             return invalid("ISO application key number must be zero through thirteen");
@@ -61,6 +64,7 @@ namespace desfire::ev3::iso7816::checked {
                      std::optional<std::uint32_t> expected, LengthEncoding encoding)
         : apdu_{0x00, instruction, p1, p2, std::move(data), expected, encoding} {}
 
+    /** @copydoc Command::make */
     Result<Command> Command::make(Byte instruction, Byte p1, Byte p2, ByteView data,
                                   std::optional<std::uint32_t> expected, LengthEncoding encoding) {
         Command command(instruction, p1, p2, Bytes(data.begin(), data.end()), expected, encoding);
@@ -71,6 +75,7 @@ namespace desfire::ev3::iso7816::checked {
         return command;
     }
 
+    /** @copydoc Command::select_file */
     Result<Command> Command::select_file(std::uint32_t identifier, FileSelection selection,
                                          SelectionResponse response, LengthEncoding encoding) {
         if (identifier > 65535 || !valid_selection_response(response) ||
@@ -88,6 +93,7 @@ namespace desfire::ev3::iso7816::checked {
                     encoding);
     }
 
+    /** @copydoc Command::select_df_name */
     Result<Command> Command::select_df_name(ByteView name, SelectionResponse response,
                                             LengthEncoding encoding) {
         if (name.empty() || name.size() > 16 || !valid_selection_response(response)) {
@@ -100,11 +106,13 @@ namespace desfire::ev3::iso7816::checked {
         return make(0xA4, 0x04, static_cast<Byte>(response), name, expected, encoding);
     }
 
+    /** @copydoc Command::read_binary */
     Result<Command> Command::read_binary(BinaryAddress address, std::uint32_t expected,
                                          LengthEncoding encoding) {
         return make(0xB0, address.p1(), address.p2(), {}, expected, encoding);
     }
 
+    /** @copydoc Command::update_binary */
     Result<Command> Command::update_binary(BinaryAddress address, ByteView data,
                                            LengthEncoding encoding) {
         if (data.empty()) {
@@ -113,6 +121,7 @@ namespace desfire::ev3::iso7816::checked {
         return make(0xD6, address.p1(), address.p2(), data, std::nullopt, encoding);
     }
 
+    /** @copydoc Command::read_records */
     Result<Command> Command::read_records(std::uint32_t record, std::uint32_t short_identifier,
                                           RecordSelection selection, std::uint32_t expected,
                                           LengthEncoding encoding) {
@@ -125,6 +134,7 @@ namespace desfire::ev3::iso7816::checked {
                     expected, encoding);
     }
 
+    /** @copydoc Command::append_record */
     Result<Command> Command::append_record(std::uint32_t short_identifier, ByteView data,
                                            LengthEncoding encoding) {
         if (short_identifier > 31 || data.empty()) {
@@ -134,6 +144,7 @@ namespace desfire::ev3::iso7816::checked {
                     encoding);
     }
 
+    /** @copydoc Command::update_record */
     Result<Command> Command::update_record(UpdateRecordInstruction instruction,
                                            std::uint32_t record, std::uint32_t short_identifier,
                                            std::uint32_t reference_control, ByteView data) {
@@ -148,6 +159,7 @@ namespace desfire::ev3::iso7816::checked {
                     std::nullopt, LengthEncoding::short_apdu);
     }
 
+    /** @copydoc Command::get_challenge */
     Result<Command> Command::get_challenge(std::uint32_t expected, LengthEncoding encoding) {
         if (expected != 8 && expected != 16) {
             return invalid("ISO GET CHALLENGE requires eight or sixteen bytes");
@@ -155,6 +167,7 @@ namespace desfire::ev3::iso7816::checked {
         return make(0x84, 0x00, 0x00, {}, expected, encoding);
     }
 
+    /** @copydoc Command::external_authenticate */
     Result<Command> Command::external_authenticate(Algorithm algorithm, KeyReference key,
                                                    ByteView cryptogram, LengthEncoding encoding) {
         if (cryptogram.size() % 2 != 0 ||
@@ -166,6 +179,7 @@ namespace desfire::ev3::iso7816::checked {
                     encoding);
     }
 
+    /** @copydoc Command::internal_authenticate */
     Result<Command> Command::internal_authenticate(Algorithm algorithm, KeyReference key,
                                                    ByteView challenge, LengthEncoding encoding) {
         if (!valid_algorithm_length(algorithm, challenge.size())) {
@@ -176,18 +190,22 @@ namespace desfire::ev3::iso7816::checked {
                     static_cast<std::uint32_t>(challenge.size() * 2), encoding);
     }
 
+    /** @copydoc Command::is_read */
     bool Command::is_read() const noexcept {
         return apdu_.ins == 0xB0 || apdu_.ins == 0xB2;
     }
 
+    /** @copydoc Command::is_write */
     bool Command::is_write() const noexcept {
         return apdu_.ins == 0xD6 || apdu_.ins == 0xDC || apdu_.ins == 0xDD || apdu_.ins == 0xE2;
     }
 
+    /** @copydoc Command::is_selection */
     bool Command::is_selection() const noexcept {
         return apdu_.ins == 0xA4;
     }
 
+    /** @copydoc Command::resets_authentication */
     bool Command::resets_authentication() const noexcept {
         return (is_selection() && apdu_.p1 != 0x02) || apdu_.ins == 0x84 || apdu_.ins == 0x82 ||
                apdu_.ins == 0x88;

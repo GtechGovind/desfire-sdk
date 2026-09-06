@@ -17,6 +17,9 @@ jobs:
     name: Documentation, API, ABI, coverage, and format
     runs-on: ubuntu-24.04
     timeout-minutes: 35
+    env:
+      CC: gcc-14
+      CXX: g++-14
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -26,7 +29,23 @@ jobs:
       - name: Install quality and PC/SC tools
         run: |
           sudo apt-get update
-          sudo apt-get install --yes clang clang-format doxygen libpcsclite-dev pkg-config
+          sudo apt-get install --yes g++-14 clang-format doxygen libpcsclite-dev pkg-config
+
+      - name: Verify GCC 14 C++26 standard library
+        shell: bash
+        run: |
+          "$CC" --version
+          "$CXX" --version
+          cat > "$RUNNER_TEMP/desfire-cxx26-probe.cpp" <<'CPP'
+          #include <expected>
+
+          int main() {
+              std::expected<int, int> result = 0;
+              return result.value();
+          }
+          CPP
+          "$CXX" -std=c++2c -Wall -Wextra -Werror -fsyntax-only \
+            "$RUNNER_TEMP/desfire-cxx26-probe.cpp"
 
       - name: Validate workflow syntax with verified actionlint
         shell: bash
@@ -60,8 +79,6 @@ jobs:
 
       - name: Configure quality build
         env:
-          CC: clang
-          CXX: clang++
           OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
         run: |
           cmake -S . -B build/quality -G Ninja \

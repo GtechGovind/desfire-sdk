@@ -17,6 +17,9 @@ jobs:
     name: Python ${{ matrix.python }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
+    env:
+      CC: gcc-14
+      CXX: g++-14
     strategy:
       fail-fast: false
       matrix:
@@ -32,6 +35,13 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: ''
+
+      - name: Install and verify GCC 14 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-14 g++-14
+          "$CC" --version
+          "$CXX" --version
 
       - name: Install pinned Python quality tools
         run: >-
@@ -56,8 +66,6 @@ jobs:
 
       - name: Build the real C ABI
         env:
-          CC: clang
-          CXX: clang++
           OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
         run: |
           cmake -S . -B "build/python-${{ matrix.python }}" -G Ninja \
@@ -115,6 +123,9 @@ jobs:
     name: Node.js ${{ matrix.node }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
+    env:
+      CC: gcc-14
+      CXX: g++-14
     strategy:
       fail-fast: false
       matrix:
@@ -130,6 +141,13 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           package-manager-cache: false
+
+      - name: Install and verify GCC 14 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-14 g++-14
+          "$CC" --version
+          "$CXX" --version
 
       - name: Restore verified OpenSSL source archive
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -149,8 +167,6 @@ jobs:
 
       - name: Build the C ABI and N-API addon
         env:
-          CC: clang
-          CXX: clang++
           OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
         shell: bash
         run: |
@@ -213,6 +229,9 @@ jobs:
     name: Kotlin/JVM and JNI
     runs-on: ubuntu-24.04
     timeout-minutes: 40
+    env:
+      CC: gcc-14
+      CXX: g++-14
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -224,6 +243,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Install and verify GCC 14 toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-14 g++-14
+          "$CC" --version
+          "$CXX" --version
 
       - name: Validate the repository Gradle wrapper
         uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
@@ -246,8 +272,6 @@ jobs:
 
       - name: Build JNI against the real C ABI
         env:
-          CC: clang
-          CXX: clang++
           OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
         run: |
           cmake -S . -B build/kotlin-native -G Ninja \

@@ -6,14 +6,17 @@
 
 namespace desfire::ev3::iso7816::checked {
 
+    /** @copydoc Channel::capabilities */
     TransportCapabilities Channel::capabilities() const {
         return channel_->capabilities();
     }
 
+    /** @copydoc Channel::generation */
     std::uint64_t Channel::generation() const noexcept {
         return channel_->generation();
     }
 
+    /** @copydoc Channel::exchange */
     Result<Response> Channel::exchange(const Command& command, const ExchangeOptions& options,
                                        const Limits& limits) {
         if ((command.is_selection() || command.is_write() || command.instruction() == 0x82 ||

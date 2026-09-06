@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import pathlib
-import re
 import sys
 
 
@@ -19,12 +18,72 @@ SOURCE_ROOTS = (
     "tests",
 )
 EXCLUDED_PARTS = {"build", ".build", "node_modules", ".gradle", ".cxx"}
-FUNCTION = re.compile(
-    r"^(?!\s*(?:if|for|while|switch|catch|return|static_assert|case|default)\b)"
-    r"\s*(?:template\s*<[^;{}]+>\s*)?"
-    r"(?:[\w:<>~*&\[\], ]+\s+)?(?:operator\s*[^\s(]+|~?\w+)\s*\([^;{}]*\)"
-    r"(?:\s*(?:const|noexcept|override|final|&|&&))*\s*(?:;|\{|=\s*(?:default|delete)\s*;)$"
-)
+CONTROL_WORDS = {
+    "case",
+    "catch",
+    "default",
+    "for",
+    "if",
+    "return",
+    "static_assert",
+    "switch",
+    "while",
+}
+
+
+def looks_like_function(candidate: str) -> bool:
+    """Recognize an authored function declaration using bounded linear scans."""
+    text = candidate.strip()
+    if not text or text.startswith("}"):
+        return False
+    if text.endswith(("= default;", "= delete;")):
+        text = text.rsplit("=", 1)[0].rstrip()
+    elif text.endswith((";", "{")):
+        text = text[:-1].rstrip()
+    else:
+        return False
+
+    opening = text.find("(")
+    if opening <= 0:
+        return False
+    depth = 0
+    closing = -1
+    for index in range(opening, len(text)):
+        character = text[index]
+        if character == "(":
+            depth += 1
+        elif character == ")":
+            depth -= 1
+            if depth == 0:
+                closing = index
+                break
+    if closing < 0:
+        return False
+
+    prefix = text[:opening].rstrip()
+    if not prefix or any(character in prefix for character in "{};"):
+        return False
+    leading_name = prefix.split(None, 1)[0].rstrip(":")
+    if leading_name in CONTROL_WORDS:
+        return False
+
+    operator_at = prefix.rfind("operator")
+    if operator_at >= 0:
+        before = prefix[operator_at - 1] if operator_at else " "
+        after_index = operator_at + len("operator")
+        after = prefix[after_index] if after_index < len(prefix) else " "
+        if (before.isspace() or before == ":") and (after.isspace() or not after.isalnum()):
+            return True
+
+    if "=" in prefix:
+        return False
+    name = prefix.rsplit(None, 1)[-1]
+    if any(marker in name for marker in (".", "->", "=")):
+        return False
+    unqualified = name.rsplit("::", 1)[-1].removeprefix("~")
+    return bool(unqualified) and (unqualified[0].isalpha() or unqualified[0] == "_") and all(
+        character.isalnum() or character == "_" for character in unqualified
+    )
 
 
 def source_files() -> list[pathlib.Path]:
@@ -101,10 +160,10 @@ def main() -> int:
             logical = ""
             if path.suffix in {".c", ".cpp"} and not candidate.rstrip().endswith("{"):
                 continue
-            if FUNCTION.match(candidate):
+            if looks_like_function(candidate):
                 if not documented(lines, start):
                     failures.append(f"{path.relative_to(ROOT)}:{start + 1}: {candidate[:120]}")
-                if candidate.rstrip().endswith("{"):
+                if candidate.rstrip().endswith("{") and brace_depth > depth_before:
                     function_body_parent_depth = depth_before
     if failures:
         print("Undocumented C/C++ functions:", file=sys.stderr)

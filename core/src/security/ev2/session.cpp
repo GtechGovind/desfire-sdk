@@ -100,6 +100,7 @@ namespace desfire::ev3::security::ev2 {
             new Session(std::move(crypto), std::move(material), counter));
     }
 
+    /** @copydoc Session::prepare_plain */
     Result<Bytes> Session::prepare_plain(Byte command, ByteView header, ByteView data) {
         (void)command;
         if (phase_ != Phase::ready) {
@@ -127,6 +128,7 @@ namespace desfire::ev3::security::ev2 {
         }
     }
 
+    /** @copydoc Session::accept_plain_response */
     Result<Bytes> Session::accept_plain_response(const native::raw::Response& response) {
         if (phase_ != Phase::awaiting_plain_response) {
             return Error{ErrorCode::session_invalid,
@@ -398,6 +400,7 @@ namespace desfire::ev3::security::ev2 {
         return authentication_;
     }
 
+    /** @copydoc Session::invalidate */
     void Session::invalidate() noexcept {
         wipe(encryption_key_.mutable_view());
         wipe(mac_key_.mutable_view());

@@ -10,21 +10,25 @@
 
 namespace desfire::ev3::iso7816::security::aes {
 
+    /** @copydoc Session::Session */
     Session::Session(checked::KeyReference reference, SecureBuffer key, checked::Channel& channel,
                      std::uint64_t generation)
         : reference_(reference), key_(std::move(key)), channel_(&channel), generation_(generation) {
     }
 
+    /** @copydoc Session::~Session */
     Session::~Session() {
         invalidate();
     }
 
+    /** @copydoc Session::invalidate */
     void Session::invalidate() noexcept {
         key_ = SecureBuffer{};
         wipe(iv_);
         valid_ = false;
     }
 
+    /** @copydoc Session::execute */
     Result<checked::Response> Session::execute(checked::Channel& channel, CryptoProvider& crypto,
                                                const checked::Command& command,
                                                const ExchangeOptions& options,

@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   sanitizer:
-    name: ${{ matrix.name }}
+    name: GCC 14 / ${{ matrix.name }}
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     strategy:
@@ -38,11 +38,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Clang
+      - name: Install GCC 14
         run: |
           sudo apt-get update
-          sudo apt-get install --yes clang ninja-build
-          clang --version
+          sudo apt-get install --yes gcc-14 g++-14 ninja-build
+          gcc-14 --version
+          g++-14 --version
 
       - name: Restore verified OpenSSL source archive
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -62,8 +63,8 @@ jobs:
 
       - name: Configure instrumented build
         env:
-          CC: clang
-          CXX: clang++
+          CC: gcc-14
+          CXX: g++-14
           OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
         run: |
           cmake -S . -B "build/${{ matrix.slug }}" -G Ninja \

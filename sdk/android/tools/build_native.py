@@ -10,7 +10,6 @@ import platform
 import re
 import shutil
 import subprocess
-import sys
 import tarfile
 import urllib.request
 
@@ -43,6 +42,32 @@ def checksum(path):
         for block in iter(lambda: stream.read(1024 * 1024), b''):
             result.update(block)
     return result.hexdigest()
+
+
+def extract_verified_archive(archive, directory):
+    """Extract a verified regular-file archive without trusting tar-owned paths or links."""
+    root = Path(directory).resolve()
+    with tarfile.open(archive) as package:
+        for member in package.getmembers():
+            destination = (root / member.name).resolve()
+            if not destination.is_relative_to(root):
+                raise RuntimeError('Source archive contains path traversal')
+            if member.issym() or member.islnk():
+                raise RuntimeError('Source archive links are not permitted')
+            if member.isdir():
+                destination.mkdir(parents=True, exist_ok=True)
+                continue
+            if not member.isfile():
+                raise RuntimeError('Source archive contains a special entry')
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if destination.exists() or destination.is_symlink():
+                raise RuntimeError('Source archive contains a duplicate path')
+            stream = package.extractfile(member)
+            if stream is None:
+                raise RuntimeError('Source archive file has no data')
+            with stream, destination.open('xb') as output:
+                shutil.copyfileobj(stream, output)
+            destination.chmod(member.mode & 0o777)
 
 
 def main():
@@ -104,22 +129,7 @@ def main():
             if json.loads(configuration_path.read_text()) != configuration:
                 raise RuntimeError('OpenSSL toolchain configuration changed; use a fresh --build-root')
         if not source.exists():
-            # The release checksum is pinned before extraction; reject traversal as an additional boundary.
-            with tarfile.open(archive) as package:
-                for member in package.getmembers():
-                    destination = (abi_build / member.name).resolve()
-                    if not destination.is_relative_to(abi_build):
-                        raise RuntimeError('Source archive contains path traversal')
-                    if member.isdev():
-                        raise RuntimeError('Source archive contains a special device')
-                    if member.issym() or member.islnk():
-                        base = destination.parent if member.issym() else abi_build
-                        if not (base / member.linkname).resolve().is_relative_to(abi_build):
-                            raise RuntimeError('Source archive link escapes extraction directory')
-                if sys.version_info >= (3, 12):
-                    package.extractall(abi_build, filter='fully_trusted')
-                else:
-                    package.extractall(abi_build)
+            extract_verified_archive(archive, abi_build)
         if not (prefix / 'lib/libcrypto.a').is_file():
             run(['perl', 'Configure', openssl_target, 'no-shared', 'no-tests', 'no-apps',
                  'no-docs', 'no-legacy', 'no-fips', 'no-module', 'no-dso', '-fPIC',
