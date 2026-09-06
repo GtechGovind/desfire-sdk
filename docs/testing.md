@@ -53,7 +53,36 @@ Binding commands and prerequisites live in each SDK README. All binding generato
 canonical manifest. They verify ABI version 1, the canonical digest, 125 exports and 120 fallible
 operations before opening a handle. Generated code contains no protocol encoding.
 
-## Evidence recorded on 2026-09-06
+## Current commit-bound evidence
+
+The final local evidence is bound to revision
+[`ef2fdf9`](https://github.com/GtechGovind/desfire-sdk/commit/ef2fdf9e667c71474993c6ebca718bc9c8eb2736)
+and canonical API digest
+`15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596`.
+
+- C++26 debug/release, C++23 release, ASan/UBSan, and TSan each passed 15/15 tests. Four
+  concurrency-sensitive scenarios passed another 80 TSan executions with no diagnostic.
+- Installed C99, C++17, C++17 `-fno-exceptions`, throwing C++17, and modern C++ consumers passed
+  5/5. API/ABI generation matched all 120 operations and 125 exports; all 44 mutation operations
+  carry an explicit reconciliation contract.
+- Python passed 28 tests, mypy, Ruff, wheel/source-distribution build, and Python 3.10 clean-install
+  verification. Node passed 20 tests, strict TypeScript, generated parity, native-addon build, and
+  package verification. Kotlin/JNI passed its host conformance and compiled example.
+- Swift passed 14 macOS tests and compiled both products for iOS 16 ARM64 device and x86_64
+  simulator with complete strict concurrency and warnings as errors.
+- Android Gradle 9.6.0 / AGP 9.4.0 completed 200 tasks for release/debug assembly, lint, unit tests,
+  Android-test compilation, and the Compose showcase. The C++26 native runtime and OpenSSL 3.5.8
+  were verified for ARM64, ARMv7, and x86_64, including required 16 KiB alignment. The AAR, debug
+  APK, and unsigned release APK digests are recorded in `spec/qualification-record.yaml`.
+- The exact 407-file Git archive passed complete-history and source Gitleaks scans. Semgrep reported
+  zero findings over 374 targets, and Grype reported zero matches across the 50-component source
+  SBOM. The build-tool graph retains two high and five medium advisories documented in
+  `docs/qualification/supply-chain-security.md`; the shipped managed runtime graph has none.
+
+Android emulator execution is pending the hosted workflow. Physical EV3, PC/SC reader, Android
+NFC, CoreNFC, production-key, and certification evidence remain unrun.
+
+## Retained evidence recorded on 2026-09-06
 
 The implementation evidence below is bound to revision
 [`0f3b733`](https://github.com/GtechGovind/desfire-sdk/commit/0f3b733f27b73481f7b26cf9402b64ccfc256e75).

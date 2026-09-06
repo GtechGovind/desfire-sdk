@@ -1,11 +1,34 @@
-# Historical security scan evidence
+# Security scan evidence
+
+## Current commit-bound scan
+
+The 2026-09-06 final source scan is bound to revision
+`ef2fdf9e667c71474993c6ebca718bc9c8eb2736`. Its deterministic 407-file Git archive has SHA-256
+`f9083e1f5f31184b48be24a3a825da66896b67a112d3f0042aedac8d5b85b733`.
+
+- Gitleaks 8.30.1 found no secret in the archive and no secret in the complete 24-commit history.
+- Semgrep Community 1.176.0 ran 112 `p/security-audit` rules over 374 targets and reported no
+  finding. It partially parsed `base.h`, `managed.h`, and `raw.h` because of C export and attribute
+  macros; strict C99/C11 header compilation, ABI tests, and the native analyzer baseline cover those
+  headers independently.
+- Syft 1.51.1 identified 50 components in the source SBOM; Grype 0.118.0 reported no match.
+- npm audit and OSV-Scanner reported no Node advisory.
+- The selected Gradle build and instrumentation graph contains 175 components and seven known
+  matches: two high and five medium. These are build-host dependencies and are absent from the
+  shipped Kotlin/Android runtime graph. The exact affected packages and remediation constraints are
+  recorded in [supply-chain-security.md](supply-chain-security.md).
+
+The same source passed C++23/C++26 host tests, ASan/UBSan, TSan, binding suites, Android package
+verification, and Swift 6 iOS device/simulator source compilation. Those results and package
+digests are indexed in `spec/qualification-record.yaml`. Physical EV3, PC/SC, Android NFC, and
+CoreNFC acceptance remain unrun.
+
+## Retained historical scan
 
 This is retained historical evidence from the macOS ARM64 qualification run on 2026-09-06. It is
 associated with source revision `0f3b733f27b73481f7b26cf9402b64ccfc256e75` and canonical API hash
-`f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff`; it does not describe the
-current uncommitted source. All uses of “current” below refer to that historical scan snapshot.
-Fresh source, dependency, sanitizer, package, and host-test evidence remains pending for the next
-committed revision.
+`f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff`. All uses of “current” in
+the retained text below refer to that historical scan snapshot.
 
 The retained evidence is bound to the historical source snapshot in
 `build/security-scan/source-manifest.sha256`. The manifest covers 373 of the 374 then-existing
@@ -73,7 +96,7 @@ The historical dependency proof used an external Gradle 8.14.5 executable. The r
 carries a Gradle 9.6.0 wrapper with the upstream distribution and wrapper-JAR checksums pinned,
 plus strict SHA-256 dependency-verification metadata for both managed build roots. The retained
 advisory counts below apply only to the historical Gradle 8.14.5 and Android Gradle Plugin 8.13.2
-graph. A fresh scan of the current graph is pending.
+graph; the current-graph result is recorded above.
 
 ## SAST and manual review
 

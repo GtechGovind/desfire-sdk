@@ -1,40 +1,88 @@
 schema_version: 2
-software_revision: pending-commit
-qualification_state: pending_commit_bound_evidence
+software_revision: ef2fdf9e667c71474993c6ebca718bc9c8eb2736
+qualification_state: commit_bound_evidence
 canonical_manifest_sha256: 15bff2b3d371174e8b26350f95b2f6589149b50fab11652ec181961015416596
 abi_exports: 125
 api_operations: 120
 evidence:
   host_replay:
-    status: pending_commit_bound_run
+    status: passed_local_commit_bound
+    date: 2026-09-06
+    configurations: cxx26_debug_cxx26_release_cxx23_release_asan_ubsan_tsan
+    tests_per_configuration: 15
   thread_sanitizer:
-    status: pending_commit_bound_run
+    status: passed_local_commit_bound
+    tests: 15
+    repeated_concurrency_scenarios: 80
+    diagnostics: 0
   static_analysis:
-    status: pending_commit_bound_run
+    status: passed_retained_native_analysis_plus_current_semgrep
+    retained_native_revision: 0f3b733f27b73481f7b26cf9402b64ccfc256e75
+    current_semgrep_targets: 374
+    current_semgrep_findings: 0
+    semgrep_partial_header_parses: 3
   source_security_scan:
-    status: pending_commit_bound_run
+    status: passed_local_commit_bound
+    archive_files: 407
+    archive_digest: f9083e1f5f31184b48be24a3a825da66896b67a112d3f0042aedac8d5b85b733
+    gitleaks_source_findings: 0
+    gitleaks_history_commits: 24
+    gitleaks_history_findings: 0
+    semgrep_targets: 374
+    semgrep_findings: 0
+    source_sbom_components: 50
+    source_sbom_advisories: 0
   build_tool_dependency_scan:
-    status: pending_commit_bound_run
+    status: passed_with_known_build_tool_advisories
+    selected_components: 175
+    advisory_matches: 7
+    high: 2
+    medium: 5
+    shipped_runtime_advisories: 0
+    gradle_build_cache: disabled
   installed_consumers:
-    status: pending_commit_bound_run
+    status: passed_local_commit_bound
+    tests: 5
+    consumers: c99_cpp17_cpp17_no_exceptions_cpp17_throwing_modern_cpp
   api_abi_generation:
-    status: pending_commit_bound_run
+    status: passed_local_commit_bound
+    abi_exports: 125
+    api_operations: 120
+    mutation_operations: 44
+    mutations_with_reconciliation_contract: 44
   android_cross_compile:
-    status: pending_commit_bound_run
+    status: passed_local_commit_bound
+    compile_sdk: 37
+    minimum_api: 23
+    cxx_standard: 26
+    abis: arm64_v8a_armeabi_v7a_x86_64
+    native_libraries_per_abi: 9
+    openssl_version: 3.5.8
+    aar_digest: f97378c6a2b9202f14b452fa9da7db470675f18b3e4a978b06c56e1b2311d2b4
+    debug_apk_digest: 410bff609eb85be0e830115797291d24b55c567e65effc244534bac96c1b5a51
+    release_apk_unsigned_digest: 6e3a7b3479555358d1359ef9f1548f322a83691aee1841bbd7dff423dfa11177
+    elf_and_apk_16k_alignment: passed
   android_emulator:
     status: pending_hosted_run
   android_physical_nfc:
     status: not_run
   ios_source_compile:
-    status: pending_commit_bound_run
+    status: passed_local_commit_bound
+    swift: 6
+    minimum_ios: 16
+    device_target: arm64_apple_ios
+    simulator_target: x86_64_apple_ios_simulator
+    strict_concurrency: complete
+    warnings_as_errors: true
   ios_simulator:
-    status: pending_commit_bound_run
+    status: passed_source_compile_only
   ios_physical_nfc:
     status: not_run
   physical_ev3_card:
     status: not_run
   pcsc_transport_compile:
-    status: pending_commit_bound_run
+    status: passed_local_commit_bound
+    physical_reader_attached: false
   pcsc_reader:
     status: not_run
   production_keys:
@@ -46,4 +94,4 @@ historical_evidence:
   manifest_sha256: f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff
   summary: docs/testing.md
   date: 2026-09-06
-release_claim: blocked_pending_commit_bound_software_hardware_and_signed_artifact_evidence
+release_claim: blocked_until_physical_hardware_and_signed_artifact_evidence

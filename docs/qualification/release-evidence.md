@@ -10,23 +10,24 @@ the exact device, OS, reader/firmware, EV3 part/configuration, test-key provenan
 outcomes, and known limitations without recording secrets or personal card data.
 
 The retained 2026-09-06 host C/C++ analyzer scope, findings, fixes, commands, and log hashes are
-recorded in [static-analysis.md](static-analysis.md). They precede the current uncommitted changes.
+recorded in [static-analysis.md](static-analysis.md). Current Semgrep and exact-archive results are
+recorded separately so the retained analyzer baseline is not presented as a fresh rerun.
 
 The retained 2026-09-06 instrumented concurrency scope, repeated lifecycle tests, and proof
 limitations are recorded in [thread-sanitizer.md](thread-sanitizer.md).
 
-The historical pre-change secret scan, security-oriented source review, dependency advisory triage,
-sanitizer cross-check, and machine-readable evidence index are recorded in
+The current exact-archive scan and retained security-oriented source review, dependency advisory
+triage, sanitizer cross-check, and machine-readable evidence index are recorded in
 [security-scan.md](security-scan.md).
 
 The repository-owned dependency verification, pinned security automation, SBOM generation,
 release attestation, update policy, and current supply-chain limits are recorded in
 [supply-chain-security.md](supply-chain-security.md).
 
-The current uncommitted source is marked `pending-commit` in
-`spec/qualification-record.yaml`. It makes no final scan, package, emulator, or host-test claim.
-Update it only with evidence bound to the committed source under test. Missing hardware evidence
-blocks a production-qualified claim even when software and emulator suites pass.
+The current software record is bound to the exact source revision in
+`spec/qualification-record.yaml`. Android emulator execution remains pending until the hosted job
+finishes. Missing hardware evidence blocks a production-qualified claim even when every software
+and emulator suite passes.
 
 `tools/verify-release.py` always checks the qualification schema, canonical API identity, operation
 and export counts, evidence state, supply-chain policy, and historical-evidence link. A manual

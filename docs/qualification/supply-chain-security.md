@@ -81,7 +81,30 @@ pull request, and run both roots without the metadata-writing option before merg
 Automation never rewrites verification metadata. Checksums verify artifact identity; they do not
 prove that a dependency is free of vulnerabilities or malicious behavior.
 
-## Historical build-tool advisory evidence and pending rescan
+## Current build-tool advisory evidence
+
+The commit-bound 2026-09-06 scan resolved 175 components from the Gradle 9.6.0, Android Gradle
+Plugin 9.4.0, and Kotlin 2.3.21 build and instrumentation graph. Grype 0.118.0 reported seven
+unique matches. None is present in the shipped Kotlin/Android runtime graph.
+
+| Severity | Component | Advisory | First fixed version reported by Grype |
+| --- | --- | --- | --- |
+| High | `org.jdom:jdom2:2.0.6` | `GHSA-2363-cqg2-863c` | 2.0.6.1 |
+| High | `org.bitbucket.b_c:jose4j:0.9.5` | `GHSA-3677-xxcr-wjqv` | 0.9.6 |
+| Medium | `org.apache.httpcomponents:httpclient:4.5.6` | `GHSA-7r82-7xv7-xcpj` | 4.5.13 |
+| Medium | `org.apache.commons:commons-lang3:3.16.0` | `GHSA-j288-q9x7-2f5v` | 3.18.0 |
+| Medium | `org.bouncycastle:bcpkix-jdk18on:1.80.2` | `GHSA-wg6q-6289-32hp` | 1.84 |
+| Medium | `org.bouncycastle:bcprov-jdk18on:1.80.2` | `GHSA-c3fc-8qff-9hwx` | 1.84 |
+| Medium | `org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.21` | `GHSA-r937-wjx7-w2jp` | 2.4.20-Beta1 |
+
+The six transitive findings belong to Google's tested Android build-tool graph. Forcing those
+private transitives independently would create an untested build configuration. The Kotlin fix is
+only available on a prerelease line at the time of this evidence. Gradle build-cache use stays
+disabled in qualification and release commands because the Kotlin advisory concerns malicious
+cache metadata. Dependabot and the scheduled scan keep these findings visible until stable upstream
+releases remove them.
+
+## Retained historical build-tool evidence
 
 The retained 2026-09-06 scan of the previous Gradle 8.14.5 and Android Gradle Plugin 8.13.2 graph
 reported 85 advisory matches across selected build, instrumentation, and plugin components. Its
@@ -91,10 +114,9 @@ describe the current Gradle 9.6.0 and Android Gradle Plugin 9.4.0 graph.
 In that historical scan, the only direct affected component was Kotlin Gradle plugin 2.3.21 under
 `GHSA-r937-wjx7-w2jp`; the first fixed 2.4.20 line was prerelease. An isolated AGP 9.3.2 and Gradle
 9.5.0 trial still had 83 selected matches and was not adopted at that time. The source now uses AGP
-9.4.0 and Gradle 9.6.0 for API 37, so a fresh commit-bound dependency resolution, SBOM, and advisory
-scan is pending. No current advisory count or clean result is claimed.
+9.4.0 and Gradle 9.6.0 for API 37. The current results supersede those historical counts.
 
-CI and release commands keep the Gradle build cache disabled while that rescan is pending.
+CI and release commands keep the Gradle build cache disabled while the Kotlin advisory remains.
 Dependabot surfaces stable candidates, but no update is merged without compilation, package,
 dependency-resolution, and managed binding checks. Private transitive versions inside the Android
 Gradle Plugin are not forced outside Google's tested graph. The scheduled scan retains a fresh

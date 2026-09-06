@@ -1,10 +1,10 @@
 # Static analysis evidence
 
-This historical record covers source revision
-`0f3b733f27b73481f7b26cf9402b64ccfc256e75` on the macOS ARM64 host on 2026-09-06. It does not
-describe the current uncommitted source. Fresh commit-bound analysis remains pending. The record
-supplements compiler, sanitizer, replay, and hardware evidence; it does not replace any of those
-evidence classes.
+This retained native analyzer record covers source revision
+`0f3b733f27b73481f7b26cf9402b64ccfc256e75` on the macOS ARM64 host on 2026-09-06. The current
+qualification record labels this as retained evidence and pairs it with a commit-bound Semgrep
+scan; it does not present these LLVM results as a fresh rerun. The record supplements compiler,
+sanitizer, replay, and hardware evidence; it does not replace any of those evidence classes.
 
 ## Scope
 
