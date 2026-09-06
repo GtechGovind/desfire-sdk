@@ -30,13 +30,24 @@ jobs:
       - name: Validate supply-chain policy
         run: python3 tools/security/check-supply-chain.py
 
-      - name: Require commit-bound software and hardware qualification for a version tag
+      - name: Validate semantic version tag
         if: github.event_name == 'push'
-        run: python3 tools/verify-release.py --require-hardware
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Unsupported release tag: $RELEASE_TAG" >&2
+            exit 1
+          fi
 
-      - name: Validate software release inputs for a manual provenance run
-        if: github.event_name == 'workflow_dispatch'
+      - name: Require commit-bound software qualification
         run: python3 tools/verify-release.py --require-software
+
+      - name: Require physical hardware qualification for a stable release
+        if: github.event_name == 'push' && startsWith(github.ref_name, 'v0.') == false
+        run: python3 tools/verify-release.py --require-hardware
 
       - name: Prepare release directory
         run: mkdir -p artifacts

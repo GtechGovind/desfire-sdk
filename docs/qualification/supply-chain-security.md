@@ -12,7 +12,7 @@ qualification evidence.
 | Dependency review | Every pull request | Rejects newly introduced dependencies with known moderate-or-higher advisories. |
 | CodeQL | Push, pull request, weekly, or manual | Analyzes C/C++, Kotlin/Java, TypeScript/JavaScript, and Python with extended security queries. |
 | Scheduled security scan | Weekly or manual | Scans full Git history for secrets, scans supported manifests with OSV, verifies Gradle checksums, generates source and selected-Gradle CycloneDX SBOMs, and scans both with Grype. |
-| Release provenance | Version tag or manual | A tag requires commit-bound software and hardware qualification; a manual run requires commit-bound software evidence only. Both create a deterministic source archive, CycloneDX source SBOM, checksums, and GitHub artifact attestation. |
+| Release provenance | Version tag or manual | Every run requires commit-bound software evidence. Stable `v1.0.0` and later tags also require physical hardware qualification; development `v0.x.y` tags retain the explicit hardware limits in the qualification record. Each run creates a deterministic source archive, CycloneDX source SBOM, checksums, and GitHub artifact attestation. |
 | Dependabot | Weekly | Proposes reviewed updates for GitHub Actions, Gradle, npm, Python build/test requirements, and Swift packages. |
 
 Each external GitHub Action is pinned to a full commit. Scanner containers are pinned to OCI

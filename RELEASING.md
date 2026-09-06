@@ -67,6 +67,12 @@ surfaces, breaking changes, migration requirements, security fixes, exact eviden
 remaining qualification limits. Archive checksums, SBOM, signatures, build logs, test results,
 hardware records, and rollback instructions with the release.
 
+Development `v0.x.y` tags require complete commit-bound software evidence and must be published as
+GitHub pre-releases while physical qualification is incomplete. Stable `v1.0.0` and later tags are
+rejected by the provenance workflow until the physical EV3, PC/SC reader, Android NFC, and iOS NFC
+rows are all recorded as passed. A pre-release label never changes the evidence recorded for an
+artifact.
+
 After publication, verify that consumers can fetch and install the published artifacts. If artifact
 identity, ABI checks, signing, or safety behavior differs from the reviewed release, stop promotion
 and follow the recorded rollback process rather than replacing evidence in place.
