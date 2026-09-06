@@ -1,0 +1,331 @@
+name: Language bindings
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.14']
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: ''
+
+      - name: Install pinned Python quality tools
+        run: >-
+          python -m pip install --disable-pip-version-check
+          build==1.6.0 mypy==2.3.1 ruff==0.16.6
+
+      - name: Restore verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Build and verify OpenSSL 3.5.8
+        id: openssl
+        run: >-
+          python3 .github/scripts/build-openssl.py
+          --prefix "${{ runner.temp }}/desfire-openssl"
+          --build-root "${{ runner.temp }}/desfire-openssl-work"
+          --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
+          --jobs 4
+
+      - name: Build the real C ABI
+        env:
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+        run: |
+          cmake -S . -B "build/python-${{ matrix.python }}" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDESFIRE_CXX_STANDARD=26 \
+            -DDESFIRE_BUILD_TESTS=OFF \
+            -DDESFIRE_BUILD_EXAMPLES=OFF \
+            -DDESFIRE_BUILD_PCSC=OFF \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" \
+            -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/libcrypto.a" \
+            -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
+          cmake --build "build/python-${{ matrix.python }}" --target desfire_c --parallel 4
+
+      - name: Check generated parity, typing, and formatting
+        run: |
+          python sdk/python/tools/generate_operations.py --check
+          python -m mypy --config-file sdk/python/pyproject.toml sdk/python/src/desfire_ev3
+          python -m ruff check sdk/python/src sdk/python/tests
+
+      - name: Run Python binding tests against the C ABI
+        env:
+          DESFIRE_LIBRARY: ${{ github.workspace }}/build/python-${{ matrix.python }}/c-api/libdesfire_c.so
+          PYTHONPATH: ${{ github.workspace }}/sdk/python/src
+          PYTHONASYNCIODEBUG: '1'
+        run: python -m unittest discover -s sdk/python/tests -v
+
+      - name: Build and verify wheel and source distribution
+        if: matrix.python == '3.10'
+        shell: bash
+        run: |
+          python -m build sdk/python --outdir build/python-dist
+          mapfile -t wheels < <(find build/python-dist -maxdepth 1 -name '*.whl' -type f)
+          mapfile -t sources < <(find build/python-dist -maxdepth 1 -name '*.tar.gz' -type f)
+          test "${#wheels[@]}" -eq 1
+          test "${#sources[@]}" -eq 1
+          python -m venv build/python-wheel-check
+          build/python-wheel-check/bin/python -m pip install \
+            --disable-pip-version-check --no-deps "${wheels[0]}"
+          build/python-wheel-check/bin/python -c \
+            'import desfire_ev3; print(desfire_ev3.__name__)'
+          sha256sum "${wheels[0]}" "${sources[0]}"
+
+      - name: Upload Python distributions
+        if: matrix.python == '3.10'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desfire-python-distributions
+          path: build/python-dist
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14
+
+  node:
+    name: Node.js ${{ matrix.node }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24, 26]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+
+      - name: Restore verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Build and verify OpenSSL 3.5.8
+        id: openssl
+        run: >-
+          python3 .github/scripts/build-openssl.py
+          --prefix "${{ runner.temp }}/desfire-openssl"
+          --build-root "${{ runner.temp }}/desfire-openssl-work"
+          --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
+          --jobs 4
+
+      - name: Build the C ABI and N-API addon
+        env:
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+        shell: bash
+        run: |
+          cmake -S . -B build/node-native -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDESFIRE_CXX_STANDARD=26 \
+            -DDESFIRE_BUILD_TESTS=OFF \
+            -DDESFIRE_BUILD_EXAMPLES=OFF \
+            -DDESFIRE_BUILD_PCSC=OFF \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" \
+            -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/libcrypto.a" \
+            -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
+          cmake --build build/node-native --target desfire_c --parallel 4
+          node_include="$(node -p \
+            "require('path').join(require('path').dirname(require('path').dirname(process.execPath)), 'include', 'node')")"
+          test -f "$node_include/node_api.h"
+          cmake -S sdk/node -B build/node-addon -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDESFIRE_BUILD_DIR="$PWD/build/node-native" \
+            -DNODE_INCLUDE_DIR="$node_include"
+          cmake --build build/node-addon --parallel 4
+
+      - name: Install exact JavaScript dependencies
+        run: npm --prefix sdk/node ci --ignore-scripts --no-audit --no-fund
+
+      - name: Check generated parity and strict TypeScript
+        run: |
+          npm --prefix sdk/node run generate:check
+          npm --prefix sdk/node run typecheck
+
+      - name: Run Node binding tests against the N-API addon
+        env:
+          DESFIRE_NODE_ADDON: ${{ github.workspace }}/build/node-addon/desfire_node.node
+          LD_LIBRARY_PATH: ${{ github.workspace }}/build/node-native/c-api
+        run: npm --prefix sdk/node test
+
+      - name: Verify npm package contents
+        shell: bash
+        run: |
+          npm --prefix sdk/node pack --dry-run
+          if [[ "${{ matrix.node }}" == "20" ]]; then
+            mkdir -p build/node-dist
+            (cd sdk/node && npm pack --pack-destination "$PWD/../../build/node-dist")
+            test "$(find build/node-dist -maxdepth 1 -name '*.tgz' -type f | wc -l)" -eq 1
+            sha256sum build/node-dist/*.tgz
+          fi
+
+      - name: Upload Node source package
+        if: matrix.node == 20
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desfire-node-source-package
+          path: build/node-dist/*.tgz
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14
+
+  kotlin:
+    name: Kotlin/JVM and JNI
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Validate the repository Gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Restore verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Build and verify OpenSSL 3.5.8
+        id: openssl
+        run: >-
+          python3 .github/scripts/build-openssl.py
+          --prefix "${{ runner.temp }}/desfire-openssl"
+          --build-root "${{ runner.temp }}/desfire-openssl-work"
+          --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
+          --jobs 4
+
+      - name: Build JNI against the real C ABI
+        env:
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+        run: |
+          cmake -S . -B build/kotlin-native -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDESFIRE_CXX_STANDARD=26 \
+            -DDESFIRE_BUILD_JNI=ON \
+            -DDESFIRE_BUILD_TESTS=OFF \
+            -DDESFIRE_BUILD_EXAMPLES=OFF \
+            -DDESFIRE_BUILD_PCSC=OFF \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" \
+            -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/libcrypto.a" \
+            -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
+          cmake --build build/kotlin-native --target desfire_jni --parallel 4
+
+      - name: Run Kotlin/JNI host conformance and compile examples
+        run: |
+          python3 sdk/kotlin/tools/generate_bindings.py --check
+          ./gradlew -p sdk/kotlin \
+            --dependency-verification strict --no-daemon --no-build-cache --stacktrace \
+            hostTest examplesCheck jar \
+            -PdesfireNativeDirectory="$PWD/build/kotlin-native/sdk/kotlin"
+          jar tf sdk/kotlin/build/libs/desfire-ev3-kotlin-0.1.0.jar \
+            | grep -q '^com/desfire/ev3/Card.class$'
+
+      - name: Upload Kotlin/JVM package
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desfire-kotlin-jvm
+          path: sdk/kotlin/build/libs/*.jar
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14
+
+  swift:
+    name: Swift 6 / macOS
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check Swift toolchain
+        run: swift --version
+
+      - name: Restore verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Build and verify OpenSSL 3.5.8
+        id: openssl
+        run: >-
+          python3 .github/scripts/build-openssl.py
+          --prefix "${{ runner.temp }}/desfire-openssl"
+          --build-root "${{ runner.temp }}/desfire-openssl-work"
+          --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
+          --jobs 4
+
+      - name: Build the real C ABI
+        env:
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+          MACOSX_DEPLOYMENT_TARGET: '14.0'
+        run: |
+          cmake -S . -B build/swift-native -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDESFIRE_CXX_STANDARD=26 \
+            -DDESFIRE_BUILD_TESTS=OFF \
+            -DDESFIRE_BUILD_EXAMPLES=OFF \
+            -DDESFIRE_BUILD_PCSC=OFF \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" \
+            -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/libcrypto.a" \
+            -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
+          cmake --build build/swift-native --target desfire_c --parallel 4
+
+      - name: Run strict Swift host conformance
+        run: |
+          swift package --package-path sdk/apple describe
+          python3 sdk/apple/tools/test.py \
+            --native-build "$PWD/build/swift-native" \
+            -Xswiftc -warnings-as-errors \
+            -Xswiftc -strict-concurrency=complete

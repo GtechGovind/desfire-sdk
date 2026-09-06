@@ -1,0 +1,37 @@
+/docs/vendor/
+/build*/
+/cmake-build-*/
+/sdk/node/lib/
+/dist/
+/out/
+/.cache/
+**/__pycache__/
+**/*.egg-info/
+**/.mypy_cache/
+**/.ruff_cache/
+**/node_modules/
+**/.gradle/
+**/.cxx/
+**/local.properties
+.DS_Store
+*.pem
+*.p12
+*.pfx
+*.keystore
+*.jks
+
+# Module-local build outputs must never enter source packages.
+**/build/
+**/.kotlin/
+
+/.build/
+/.swiftpm/
+
+**/.build/
+
+# Local Codex integration settings can contain host-specific endpoints.
+/.codex/
+
+# Developer-specific IDE state is not part of the portable source package.
+/.idea/
+/.vscode/

@@ -1,0 +1,91 @@
+name: Source quality
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Documentation, API, ABI, coverage, and format
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install quality and PC/SC tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-format doxygen libpcsclite-dev pkg-config
+
+      - name: Validate workflow syntax with verified actionlint
+        shell: bash
+        run: |
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl --fail --location --silent --show-error \
+            --output "$archive" \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $archive" \
+            | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -version
+          "$RUNNER_TEMP/actionlint" -color
+          python3 .github/scripts/check-actions-pinned.py
+
+      - name: Restore verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Build and verify OpenSSL 3.5.8
+        id: openssl
+        run: >-
+          python3 .github/scripts/build-openssl.py
+          --prefix "${{ runner.temp }}/desfire-openssl"
+          --build-root "${{ runner.temp }}/desfire-openssl-work"
+          --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
+          --jobs 4
+
+      - name: Configure quality build
+        env:
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+        run: |
+          cmake -S . -B build/quality -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDESFIRE_CXX_STANDARD=26 \
+            -DDESFIRE_BUILD_TESTS=OFF \
+            -DDESFIRE_BUILD_EXAMPLES=ON \
+            -DDESFIRE_BUILD_PCSC=ON \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" \
+            -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/libcrypto.a" \
+            -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
+
+      - name: Run source and linked ABI gates
+        run: >-
+          cmake --build build/quality --parallel 4 --target
+          format-check docs-check api-check abi-check coverage-check docs
+
+      - name: Verify complete release inputs
+        run: python3 tools/verify-release.py
+
+      - name: Upload generated API documentation
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desfire-api-documentation
+          path: build/quality/documentation/html
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14

@@ -1,0 +1,98 @@
+name: Android release package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  aar:
+    name: Three-ABI verified AAR
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Validate the repository Gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Install pinned Android platform and NDK
+        shell: bash
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;29.0.14206865'
+          ndk="$ANDROID_SDK_ROOT/ndk/29.0.14206865"
+          test -f "$ndk/source.properties"
+          echo "ANDROID_NDK_ROOT=$ndk" >> "$GITHUB_ENV"
+
+      - name: Restore the verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Obtain and verify the pinned OpenSSL source archive
+        shell: bash
+        run: |
+          archive="$RUNNER_TEMP/openssl-3.5.8.tar.gz"
+          if [[ ! -f "$archive" ]]; then
+            curl --fail --location --silent --show-error \
+              --output "$archive.download" \
+              https://github.com/openssl/openssl/releases/download/openssl-3.5.8/openssl-3.5.8.tar.gz
+            mv "$archive.download" "$archive"
+          fi
+          echo "a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2  $archive" \
+            | sha256sum --check --strict
+
+      - name: Build and verify all Android native runtimes
+        run: |
+          python3 sdk/android/tools/build_native.py \
+            --ndk "$ANDROID_NDK_ROOT" \
+            --api 23 \
+            --cxx-standard 26 \
+            --archive "$RUNNER_TEMP/openssl-3.5.8.tar.gz" \
+            --jobs 4
+
+      - name: Assemble, lint, and compile Android test sources
+        run: |
+          ./gradlew -p sdk/android \
+            --dependency-verification strict --no-daemon --no-build-cache --stacktrace \
+            assembleRelease lintRelease compileDebugAndroidTestSources \
+            -PdesfireNativeDirectory="$PWD/sdk/android/build/native-jniLibs"
+
+      - name: Verify packaged classes, notices, ABIs, and ELF hashes
+        run: python3 sdk/android/tools/verify_aar.py
+
+      - name: Hash release evidence
+        run: |
+          sha256sum sdk/android/build/outputs/aar/*.aar
+          sha256sum sdk/android/build/native/build-evidence.json
+
+      - name: Upload verified Android package and evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desfire-android-aar
+          path: |
+            sdk/android/build/outputs/aar/*.aar
+            sdk/android/build/native/build-evidence.json
+            sdk/android/build/native/OPENSSL-LICENSE.txt
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 30

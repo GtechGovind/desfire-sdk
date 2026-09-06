@@ -1,0 +1,94 @@
+name: Bug report
+description: Report reproducible SDK behavior that differs from its documented contract.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include keys, credentials, personal card data, payment data, authenticated APDU traces, or restricted vendor documents. Report security vulnerabilities privately according to SECURITY.md.
+  - type: input
+    id: revision
+    attributes:
+      label: Version or source revision
+      description: Provide a package version, tag, commit, or uncommitted-tree description.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: SDK surface
+      options:
+        - Modern C++ core
+        - C ABI
+        - C++17 facade
+        - Kotlin/JVM
+        - Android
+        - Python
+        - Node/TypeScript
+        - Swift/Apple
+        - Build, packaging, or documentation
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, architecture, compiler/runtime, reader, firmware, and card model when applicable.
+    validations:
+      required: true
+  - type: input
+    id: operation
+    attributes:
+      label: Operation, transport, and framing
+      description: Name the workflow and whether it uses direct native, ISO-wrapped native, or true ISO 7816.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest independently shareable example and exact commands.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Include the documented status, output, state transition, or delivery outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the exact redacted error, native status, ISO status word, and delivery outcome when available.
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence
+    attributes:
+      label: Evidence source
+      multiple: true
+      options:
+        - Host or replay test
+        - Cross-compiled source only
+        - Emulator or simulator
+        - Physical EV3 card and reader
+        - Production environment
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Redacted diagnostics
+      description: Paste only sanitized logs or frame summaries that contain no secrets or personal data.
+      render: text
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Submission checks
+      options:
+        - label: I removed keys, credentials, personal/payment data, and restricted material.
+          required: true
+        - label: This is not a privately reportable security vulnerability.
+          required: true

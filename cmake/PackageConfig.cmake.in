@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+find_dependency(Threads)
+if(@DESFIRE_BUILD_OPENSSL@)
+    find_dependency(OpenSSL 3.5 COMPONENTS Crypto)
+endif()
+if(@DESFIRE_BUILD_PCSC@ AND UNIX AND NOT APPLE)
+    find_dependency(PkgConfig)
+    pkg_check_modules(PCSC REQUIRED IMPORTED_TARGET libpcsclite)
+endif()
+include("${CMAKE_CURRENT_LIST_DIR}/desfire-sdk-targets.cmake")
+check_required_components(desfire-sdk)

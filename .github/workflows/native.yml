@@ -1,0 +1,176 @@
+name: Native compatibility
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    name: ${{ matrix.name }} / C++${{ matrix.standard }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        standard: [23, 26]
+        platform:
+          - linux
+          - macos
+          - windows
+        include:
+          - platform: linux
+            name: Linux
+            runner: ubuntu-24.04
+            generator: Ninja
+            crypto-library: libcrypto.a
+            package: true
+          - platform: macos
+            name: macOS
+            runner: macos-15
+            generator: Ninja
+            crypto-library: libcrypto.a
+            package: false
+          - platform: windows
+            name: Windows
+            runner: windows-2025
+            generator: Visual Studio 17 2022
+            crypto-library: libcrypto.lib
+            package: false
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Linux PC/SC prerequisites
+        if: matrix.platform == 'linux'
+        run: sudo apt-get update && sudo apt-get install --yes libpcsclite-dev pkg-config
+
+      - name: Check host toolchain
+        shell: bash
+        run: |
+          cmake --version
+          python3 --version
+          perl -v
+          if [[ "${{ matrix.platform }}" != "windows" ]]; then make --version; fi
+
+      - name: Restore verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Build and verify OpenSSL 3.5.8
+        id: openssl
+        shell: bash
+        run: >-
+          python3 .github/scripts/build-openssl.py
+          --prefix "${{ runner.temp }}/desfire-openssl"
+          --build-root "${{ runner.temp }}/desfire-openssl-work"
+          --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
+          --jobs 4
+
+      - name: Configure native SDK
+        shell: bash
+        env:
+          BUILD_DIR: build/ci-${{ matrix.platform }}-cxx${{ matrix.standard }}
+          CMAKE_GENERATOR: ${{ matrix.generator }}
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+          OPENSSL_CRYPTO: ${{ matrix.crypto-library }}
+        run: |
+          cmake -S . -B "$BUILD_DIR" -G "$CMAKE_GENERATOR" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DDESFIRE_CXX_STANDARD=${{ matrix.standard }} \
+            -DDESFIRE_BUILD_TESTS=ON \
+            -DDESFIRE_BUILD_EXAMPLES=ON \
+            -DDESFIRE_BUILD_PCSC=ON \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" \
+            -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/$OPENSSL_CRYPTO" \
+            -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
+
+      - name: Build native SDK
+        shell: bash
+        run: >-
+          cmake --build build/ci-${{ matrix.platform }}-cxx${{ matrix.standard }}
+          --config Release --parallel 4
+
+      - name: Add native libraries to loader path
+        shell: bash
+        run: |
+          build_dir="$PWD/build/ci-${{ matrix.platform }}-cxx${{ matrix.standard }}"
+          echo "$build_dir/c-api" >> "$GITHUB_PATH"
+          echo "$build_dir/c-api/Release" >> "$GITHUB_PATH"
+
+      - name: Run native host and ABI tests
+        shell: bash
+        run: >-
+          ctest --test-dir build/ci-${{ matrix.platform }}-cxx${{ matrix.standard }}
+          --build-config Release --output-on-failure --timeout 180
+
+      - name: Install native package
+        shell: bash
+        run: >-
+          cmake --install build/ci-${{ matrix.platform }}-cxx${{ matrix.standard }}
+          --config Release
+          --prefix "$PWD/build/install-${{ matrix.platform }}-cxx${{ matrix.standard }}"
+
+      - name: Add installed libraries to loader path
+        shell: bash
+        run: |
+          install_dir="$PWD/build/install-${{ matrix.platform }}-cxx${{ matrix.standard }}"
+          echo "$install_dir/bin" >> "$GITHUB_PATH"
+          echo "$install_dir/lib" >> "$GITHUB_PATH"
+
+      - name: Configure independent installed consumers
+        shell: bash
+        env:
+          CMAKE_GENERATOR: ${{ matrix.generator }}
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+        run: |
+          cmake -S tests/install-consumer \
+            -B build/consumer-${{ matrix.platform }}-cxx${{ matrix.standard }} \
+            -G "$CMAKE_GENERATOR" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="$PWD/build/install-${{ matrix.platform }}-cxx${{ matrix.standard }}" \
+            -DDESFIRE_INSTALL_CONSUMER_CXX_STANDARD=${{ matrix.standard }} \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT"
+
+      - name: Build and run C99 and C++ consumers
+        shell: bash
+        run: |
+          cmake --build build/consumer-${{ matrix.platform }}-cxx${{ matrix.standard }} \
+            --config Release --parallel 4
+          ctest --test-dir build/consumer-${{ matrix.platform }}-cxx${{ matrix.standard }} \
+            --build-config Release --output-on-failure --timeout 120
+
+      - name: Package verified Linux install tree
+        if: matrix.package && matrix.standard == 26
+        shell: bash
+        run: |
+          install_dir="$PWD/build/install-${{ matrix.platform }}-cxx${{ matrix.standard }}"
+          test -f "$install_dir/include/desfire.h"
+          test -f "$install_dir/lib/cmake/desfire-sdk/desfire-sdk-config.cmake"
+          tar -C "$install_dir" -czf "$PWD/build/desfire-sdk-linux-cmake-package.tar.gz" .
+          sha256sum "$PWD/build/desfire-sdk-linux-cmake-package.tar.gz"
+
+      - name: Upload verified source package
+        if: matrix.package && matrix.standard == 26
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desfire-sdk-linux-cmake-package
+          path: build/desfire-sdk-linux-cmake-package.tar.gz
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14

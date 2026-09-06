@@ -1,0 +1,96 @@
+schema_version: 1
+product: MIFARE DESFire EV3
+evidence_policy:
+  typed_support_requires:
+    - documented_field_layout
+    - checked_core_api
+    - managed_core_api
+    - independent_success_fixture
+    - independent_failure_fixture
+  raw_exchange_counts_as_typed_support: false
+  physical_support_requires_dated_qualification: true
+
+areas:
+  native_framing:
+    status: implemented
+    variants: [direct, iso_wrapped, additional_frame_upload, additional_frame_download]
+    tests: [ev3_native_raw_test, ev3_long_exchange_test]
+  discovery:
+    status: implemented
+    commands: [get_version, free_memory, get_application_ids, get_df_names,
+      get_iso_file_ids, get_file_ids, select_application]
+    tests: [ev3_native_checked_test, ev3_card_test]
+  authentication:
+    status: implemented
+    commands: [authenticate_standard_aes, authenticate_ev2_first_aes,
+      authenticate_ev2_first_aes_with_capabilities, authenticate_ev2_non_first_aes,
+      authenticate_iso_aes]
+    key_sources: [direct, derived, provider]
+    tests: [ev3_standard_aes_test, ev3_security_test, ev3_iso7816_test, ev3_card_test]
+  native_secure_messaging:
+    status: implemented
+    variants: [standard_aes_plain, standard_aes_mac, standard_aes_full,
+      ev2_plain, ev2_mac, ev2_full]
+    tests: [ev3_standard_aes_test, ev3_security_test, ev3_card_test]
+  applications_and_keys:
+    status: implemented
+    commands: [create_application, delete_application, create_delegated_application,
+      get_delegated_application_info, delete_delegated_application, get_key_settings,
+      change_key_settings, get_key_version, get_key_set_versions, change_aes_key,
+      initialize_key_set, finalize_key_set, roll_key_set]
+    tests: [ev3_native_checked_test, ev3_card_test, ev3_offline_test]
+  files:
+    status: implemented
+    commands: [create_standard_data_file, create_backup_data_file, create_value_file,
+      create_linear_record_file, create_cyclic_record_file, create_transaction_mac_file,
+      delete_file, get_file_settings, change_file_settings, get_file_counters,
+      read_data, write_data, read_records, write_record, update_record,
+      clear_record_file, get_value, credit, debit, limited_credit]
+    tests: [ev3_native_checked_test, ev3_card_test]
+  transactions:
+    status: implemented
+    commands: [commit_transaction, commit_reader_id, abort_transaction, restore_transfer,
+      execute_transaction]
+    tests: [ev3_native_checked_test, ev3_standard_aes_test, ev3_card_test,
+      ev3_long_exchange_test]
+  card_management:
+    status: implemented_with_documented_exclusions
+    commands: [get_card_uid, read_originality_signature, reset_authentication, format_picc,
+      set_picc_configuration, set_capability_configuration, set_default_aes_key,
+      set_ats, set_atqa]
+    tests: [ev3_native_checked_test, ev3_card_test, ev3_offline_test,
+      ev3_long_exchange_test]
+  iso7816:
+    status: implemented
+    commands: [select_file, select_df_name, read_binary, update_binary, read_records,
+      append_record, update_record_dc, update_record_dd, get_challenge,
+      external_authenticate, internal_authenticate]
+    variants: [short_length, extended_length, get_response_61xx, read_only_6cxx_correction]
+    tests: [ev3_iso7816_test]
+  offline_aes:
+    status: implemented
+    operations: [nxp_aes128_derivation, delegated_default_key_encryption,
+      delegated_create_mac, delegated_delete_mac, delegated_configuration_mac,
+      mifare_classic_license_mac, transaction_mac_key_derivation,
+      transaction_mac_calculation, transaction_mac_verification,
+      transaction_reader_id_decryption, originality_signature_verification]
+    tests: [ev3_offline_test]
+  raw:
+    status: implemented
+    variants: [native_single_frame, native_logical, native_direct, native_iso_wrapped,
+      native_secure_explicit, iso7816_exact]
+    tests: [ev3_native_raw_test]
+
+unsupported:
+  - feature: sdm
+    reason: Explicitly deferred; supplied material does not define every conditional layout.
+  - feature: set_configuration_sak
+    reason: Authoritative EV3 field layout is unavailable.
+  - feature: set_configuration_virtual_card_identifier
+    reason: Authoritative EV3 field layout is unavailable.
+  - feature: delegated_option_6_card_payload
+    reason: Supplied material covers the offline authorization input but not the card payload.
+  - feature: automatic_transaction_mac_input_accumulation
+    reason: Offline APIs require caller-supplied authoritative transaction input.
+  - feature: opaque_sam_hsm_keys
+    reason: The selected provider contract returns exportable AES-128 key bytes.

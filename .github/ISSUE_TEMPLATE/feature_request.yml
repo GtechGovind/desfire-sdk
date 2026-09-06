@@ -1,0 +1,68 @@
+name: Feature request
+description: Propose a user workflow, command variant, binding capability, or engineering improvement.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Protocol features require an authoritative field layout and independent verification. Do not upload restricted documents; cite an allowed title, revision, and section instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Integration problem or use case
+      description: Explain what an application needs to accomplish and why current APIs are insufficient.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the friendly and expert/raw behavior, typed inputs, results, and failure outcomes.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Protocol or contract source
+      description: Identify the allowed specification, public contract, or existing API evidence. Write "Not protocol-related" when applicable.
+    validations:
+      required: true
+  - type: dropdown
+    id: surfaces
+    attributes:
+      label: Requested surfaces
+      multiple: true
+      options:
+        - Modern C++ core
+        - C ABI
+        - C++17 facade
+        - Kotlin/JVM and Android
+        - Python
+        - Node/TypeScript
+        - Swift/Apple
+        - Build, packaging, or documentation
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Security, lifecycle, and compatibility effects
+      description: Address keys, ownership, cancellation, delivery uncertainty, ABI compatibility, and unsupported fallbacks where relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Proposed verification
+      description: List exact-wire, known-answer, malformed-input, binding, sanitizer, and target tests needed.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Submission checks
+      options:
+        - label: The request contains no keys, personal/payment data, or restricted documents.
+          required: true
+        - label: I checked the current coverage matrix and identified any existing unsupported boundary.
+          required: true

@@ -1,0 +1,114 @@
+name: Native sanitizers
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sanitizer:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: AddressSanitizer and UndefinedBehaviorSanitizer
+            slug: asan-ubsan
+            asan: ON
+            ubsan: ON
+            tsan: OFF
+          - name: ThreadSanitizer
+            slug: tsan
+            asan: OFF
+            ubsan: OFF
+            tsan: ON
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang ninja-build
+          clang --version
+
+      - name: Restore verified OpenSSL source archive
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/openssl-3.5.8.tar.gz
+          key: openssl-source-3.5.8-a8f84a39918ec641
+          enableCrossOsArchive: false
+
+      - name: Build and verify OpenSSL 3.5.8
+        id: openssl
+        run: >-
+          python3 .github/scripts/build-openssl.py
+          --prefix "${{ runner.temp }}/desfire-openssl"
+          --build-root "${{ runner.temp }}/desfire-openssl-work"
+          --archive "${{ runner.temp }}/openssl-3.5.8.tar.gz"
+          --jobs 4
+
+      - name: Configure instrumented build
+        env:
+          CC: clang
+          CXX: clang++
+          OPENSSL_ROOT: ${{ steps.openssl.outputs.prefix }}
+        run: |
+          cmake -S . -B "build/${{ matrix.slug }}" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DDESFIRE_CXX_STANDARD=26 \
+            -DDESFIRE_ENABLE_ASAN=${{ matrix.asan }} \
+            -DDESFIRE_ENABLE_UBSAN=${{ matrix.ubsan }} \
+            -DDESFIRE_ENABLE_TSAN=${{ matrix.tsan }} \
+            -DDESFIRE_BUILD_TESTS=ON \
+            -DDESFIRE_BUILD_EXAMPLES=ON \
+            -DDESFIRE_BUILD_PCSC=OFF \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
+            -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT" \
+            -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_ROOT/lib/libcrypto.a" \
+            -DOPENSSL_INCLUDE_DIR="$OPENSSL_ROOT/include"
+
+      - name: Build instrumented SDK
+        run: cmake --build "build/${{ matrix.slug }}" --parallel 4
+
+      - name: Run complete instrumented host suite
+        env:
+          ASAN_OPTIONS: halt_on_error=1:abort_on_error=1:detect_leaks=1:strict_string_checks=1
+          UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1:print_stacktrace=1
+          TSAN_OPTIONS: halt_on_error=1:abort_on_error=1:second_deadlock_stack=1:history_size=7
+        run: >-
+          ctest --test-dir "build/${{ matrix.slug }}"
+          --output-on-failure --timeout 240 --parallel 1
+
+      - name: Repeat concurrency-sensitive scenarios
+        env:
+          ASAN_OPTIONS: halt_on_error=1:abort_on_error=1:detect_leaks=1:strict_string_checks=1
+          UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1:print_stacktrace=1
+          TSAN_OPTIONS: halt_on_error=1:abort_on_error=1:second_deadlock_stack=1:history_size=7
+        run: >-
+          ctest --test-dir "build/${{ matrix.slug }}"
+          --output-on-failure --timeout 240 --parallel 1
+          --repeat until-fail:20
+          --tests-regex 'ev3_card_test|ev3_iso7816_test|ev3_long_exchange_test|c_abi_test'
+
+      - name: Upload sanitizer failure log
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ matrix.slug }}-failure-log
+          path: build/${{ matrix.slug }}/Testing/Temporary/LastTest.log
+          if-no-files-found: warn
+          include-hidden-files: false
+          retention-days: 14

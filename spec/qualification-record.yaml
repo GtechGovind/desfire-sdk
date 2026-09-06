@@ -1,0 +1,70 @@
+schema_version: 1
+software_revision: uncommitted-development-tree
+evidence:
+  host_replay:
+    status: passed
+    date: 2026-09-06
+    configurations: [cxx26_debug, cxx26_release, cxx23_release, asan_ubsan, tsan]
+    tests_per_configuration: 15
+  thread_sanitizer:
+    status: passed
+    production_translation_units: 49
+    full_tests: 15
+    repeated_concurrency_tests: 80
+    diagnostics: 0
+    log_sha256: d637b47290f2f56df39969ca3220acf9e89caa14e19f5268b3c171fbeedb9f8e
+  static_analysis:
+    status: passed_with_reviewed_tool_limitations
+    production_translation_units: 54
+    llvm_scan_build_defects: 0
+    reviewed_gate_untriaged_diagnostics: 0
+  source_security_scan:
+    status: passed_after_confirmed_fixes
+    gitleaks_findings: 0
+    scanned_files: 343
+    shipped_runtime_known_advisories: 0
+  build_tool_dependency_scan:
+    status: blocked
+    selected_advisory_rows: 85
+    unique_selected_ghsa_ids: 47
+    repository_owned_gradle_wrapper: false
+    dependency_verification_metadata: false
+  installed_consumers:
+    status: passed
+    languages: [c99, cpp17, cpp17_no_exceptions, cpp17_throwing, cpp23, cpp26]
+  api_abi_generation:
+    status: passed
+    abi_exports: 125
+    operations: 120
+    manifest_sha256: f54fa5c36cbf171f3b4381f34786a73a4ed2b9ca20ec74b68d9efb11c5ac01ff
+  android_cross_compile:
+    status: passed
+    date: 2026-09-06
+    api: 23
+    cxx_standard: 26
+    abis: [arm64-v8a, armeabi-v7a, x86_64]
+  android_emulator:
+    status: not_run_current_revision
+  android_physical_nfc:
+    status: not_run
+  ios_source_compile:
+    status: passed
+    date: 2026-09-06
+    minimum_ios: 16
+    targets: [arm64_device, x86_64_simulator]
+  ios_simulator:
+    status: source_build_only
+  ios_physical_nfc:
+    status: not_run
+  physical_ev3_card:
+    status: not_run
+  pcsc_transport_compile:
+    status: passed
+    date: 2026-09-06
+  pcsc_reader:
+    status: not_run
+  production_keys:
+    status: not_run
+  sam_hsm:
+    status: outside_selected_key_provider_scope
+release_claim: blocked_until_build_supply_chain_physical_hardware_platform_matrix_and_signed_artifact_evidence_are_recorded

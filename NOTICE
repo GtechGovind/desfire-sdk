@@ -1,0 +1,10 @@
+DESFire EV3 SDK
+
+This SDK is independently authored and distributed under the Apache License 2.0.
+DESFire, MIFARE, and NXP are trademarks of their respective owners. This project is
+not an NXP product or a claim of NXP approval or certification.
+
+OpenSSL is a separately licensed dependency under Apache-2.0. Source distributions
+do not include OpenSSL source. Android binary distributions statically link
+OpenSSL and include its license and notice in their distribution metadata.
+Other platform runtimes retain their upstream licenses; see docs/dependencies.md.

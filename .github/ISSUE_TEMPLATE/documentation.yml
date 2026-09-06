@@ -1,0 +1,30 @@
+name: Documentation problem
+description: Report inaccurate, incomplete, unclear, or broken documentation.
+title: "[Docs]: "
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Document and section
+      description: Provide a repository path, heading, or public symbol.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Explain what is inaccurate, unclear, missing, or broken.
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Suggested correction
+      description: Provide source evidence when the correction changes protocol or qualification claims.
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Submission checks
+      options:
+        - label: The report contains no secrets, personal/payment data, or restricted documents.
+          required: true

@@ -1,0 +1,10 @@
+{
+  "abiVersion": 1,
+  "library": "desfire_c",
+  "callingConvention": "C",
+  "minimumLanguage": "C99",
+  "errorModel": "per-call df_error",
+  "bufferOwnership": "owned opaque buffer released by df_buffer_free",
+  "handlePolicy": "opaque monotonic identifiers are never reused",
+  "compatibility": "struct prefixes and published enum values remain stable within ABI v1"
+}

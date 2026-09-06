@@ -1,0 +1,5 @@
+module CDesfire [system] {
+    header "shim.h"
+    link "desfire_c"
+    export *
+}

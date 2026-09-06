@@ -1,0 +1,10 @@
+/**
+ * @file manifest.hpp
+ * @brief Configure-time API-manifest identity embedded in the C ABI.
+ */
+#pragma once
+
+namespace desfire::c_api::detail {
+    /** @brief Lowercase hexadecimal SHA-256 of api/ev3-api.json. */
+    inline constexpr char manifest_sha256[] = "@DESFIRE_API_MANIFEST_SHA256@";
+}

@@ -1,0 +1,20 @@
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.aar binary
+*.dylib binary
+*.jar binary
+*.node binary
+*.so binary
+*.zip binary
+
+sdk/generated/** linguist-generated=true
+sdk/kotlin/src/main/cpp/operations.inc linguist-generated=true
+sdk/kotlin/src/main/kotlin/com/desfire/ev3/raw/RawOperations.generated.kt linguist-generated=true
+sdk/node/native/dispatch.inc linguist-generated=true
+sdk/node/src/raw/operations.generated.* linguist-generated=true
+sdk/python/src/desfire_ev3/raw/operations_generated.py linguist-generated=true
+sdk/apple/Sources/DesfireEV3/Raw/GeneratedOperations.swift linguist-generated=true

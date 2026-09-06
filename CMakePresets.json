@@ -1,0 +1,165 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DESFIRE_CXX_STANDARD": "26",
+        "DESFIRE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "DESFIRE_CXX_STANDARD": "26",
+        "DESFIRE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "compat23",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/compat23",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "DESFIRE_CXX_STANDARD": "23",
+        "DESFIRE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "sanitized",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/sanitized",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DESFIRE_CXX_STANDARD": "26",
+        "DESFIRE_ENABLE_ASAN": "ON",
+        "DESFIRE_ENABLE_UBSAN": "ON",
+        "DESFIRE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "thread-sanitized",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/thread-sanitized",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DESFIRE_CXX_STANDARD": "26",
+        "DESFIRE_ENABLE_TSAN": "ON",
+        "DESFIRE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "core-only",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/core-only",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "DESFIRE_CXX_STANDARD": "26",
+        "DESFIRE_BUILD_OPENSSL": "OFF",
+        "DESFIRE_BUILD_C_API": "OFF",
+        "DESFIRE_BUILD_PCSC": "OFF",
+        "DESFIRE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "core-only-compat23",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/core-only-compat23",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "DESFIRE_CXX_STANDARD": "23",
+        "DESFIRE_BUILD_OPENSSL": "OFF",
+        "DESFIRE_BUILD_C_API": "OFF",
+        "DESFIRE_BUILD_PCSC": "OFF",
+        "DESFIRE_BUILD_TESTS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "compat23",
+      "configurePreset": "compat23"
+    },
+    {
+      "name": "sanitized",
+      "configurePreset": "sanitized"
+    },
+    {
+      "name": "thread-sanitized",
+      "configurePreset": "thread-sanitized"
+    },
+    {
+      "name": "core-only",
+      "configurePreset": "core-only"
+    },
+    {
+      "name": "core-only-compat23",
+      "configurePreset": "core-only-compat23"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "compat23",
+      "configurePreset": "compat23",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "sanitized",
+      "configurePreset": "sanitized",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "thread-sanitized",
+      "configurePreset": "thread-sanitized",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "core-only",
+      "configurePreset": "core-only",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "core-only-compat23",
+      "configurePreset": "core-only-compat23",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

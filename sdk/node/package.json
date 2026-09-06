@@ -1,0 +1,25 @@
+{
+  "name": "@desfire/ev3",
+  "version": "0.1.0",
+  "description": "Worker-isolated Node.js and TypeScript binding for the DESFire EV3 C ABI",
+  "type": "module",
+  "main": "src/index.mjs",
+  "types": "src/index.d.ts",
+  "exports": {
+    ".": { "types": "./src/index.d.ts", "import": "./src/index.mjs" },
+    "./raw": { "types": "./src/raw/index.d.ts", "import": "./src/raw/index.mjs" }
+  },
+  "files": ["src", "native", "tools", "CMakeLists.txt", "README.md", "tsconfig.json"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "generate": "python3 tools/generate.py",
+    "generate:check": "python3 tools/generate.py --check",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "typescript": "^5.9.3"
+  },
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,666 @@
+[
+  {
+    "name": "application_ids",
+    "params": [],
+    "convert": "",
+    "expression": "get_application_ids()",
+    "output": "bytes"
+  },
+  {
+    "name": "iso_file_ids",
+    "params": [],
+    "convert": "",
+    "expression": "get_iso_file_ids()",
+    "output": "bytes"
+  },
+  {
+    "name": "get_key_settings",
+    "params": [],
+    "convert": "",
+    "expression": "get_key_settings()",
+    "output": "bytes"
+  },
+  {
+    "name": "get_key_set_versions",
+    "params": [],
+    "convert": "",
+    "expression": "get_key_set_versions()",
+    "output": "bytes"
+  },
+  {
+    "name": "get_card_uid",
+    "params": [],
+    "convert": "",
+    "expression": "get_card_uid()",
+    "output": "bytes"
+  },
+  {
+    "name": "read_originality_signature",
+    "params": [],
+    "convert": "",
+    "expression": "read_originality_signature()",
+    "output": "bytes"
+  },
+  {
+    "name": "abort_transaction",
+    "params": [],
+    "convert": "",
+    "expression": "abort_transaction()",
+    "output": "void"
+  },
+  {
+    "name": "format_picc",
+    "params": [],
+    "convert": "",
+    "expression": "format_picc()",
+    "output": "void"
+  },
+  {
+    "name": "delete_file",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();",
+    "expression": "delete_file(f.value())",
+    "output": "void"
+  },
+  {
+    "name": "get_file_settings",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();",
+    "expression": "get_file_settings(f.value())",
+    "output": "bytes"
+  },
+  {
+    "name": "clear_record_file",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();",
+    "expression": "clear_record_file(f.value())",
+    "output": "void"
+  },
+  {
+    "name": "get_file_counters",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();",
+    "expression": "get_file_counters(f.value())",
+    "output": "bytes"
+  },
+  {
+    "name": "delete_application",
+    "params": [
+      [
+        "uint32_t",
+        "aid"
+      ]
+    ],
+    "convert": "auto a = ApplicationId::make(aid); if (!a) return a.error();",
+    "expression": "delete_application(a.value())",
+    "output": "void"
+  },
+  {
+    "name": "change_key_settings",
+    "params": [
+      [
+        "uint32_t",
+        "settings"
+      ]
+    ],
+    "convert": "if (settings>255) return invalid(\"Key settings exceed one byte\");",
+    "expression": "change_key_settings(static_cast<Byte>(settings))",
+    "output": "void"
+  },
+  {
+    "name": "get_key_version",
+    "params": [
+      [
+        "uint32_t",
+        "number"
+      ],
+      [
+        "int32_t",
+        "key_set"
+      ]
+    ],
+    "convert": "auto k=KeyNumber::make(number); if (!k) return k.error(); if (key_set < -1 || key_set > 255) return invalid(\"Invalid key set\"); std::optional<Byte> ks; if(key_set>=0) ks=static_cast<Byte>(key_set);",
+    "expression": "get_key_version(k.value(),ks)",
+    "output": "bytes"
+  },
+  {
+    "name": "initialize_key_set",
+    "params": [
+      [
+        "uint32_t",
+        "key_set"
+      ]
+    ],
+    "convert": "if(key_set>255) return invalid(\"Invalid key set\");",
+    "expression": "initialize_key_set(static_cast<Byte>(key_set))",
+    "output": "void"
+  },
+  {
+    "name": "roll_key_set",
+    "params": [
+      [
+        "uint32_t",
+        "key_set"
+      ]
+    ],
+    "convert": "if(key_set>255) return invalid(\"Invalid key set\");",
+    "expression": "roll_key_set(static_cast<Byte>(key_set))",
+    "output": "void"
+  },
+  {
+    "name": "finalize_key_set",
+    "params": [
+      [
+        "uint32_t",
+        "key_set"
+      ],
+      [
+        "uint32_t",
+        "version"
+      ]
+    ],
+    "convert": "if(key_set>255 || version>255) return invalid(\"Invalid key set/version\");",
+    "expression": "finalize_key_set(static_cast<Byte>(key_set),static_cast<Byte>(version))",
+    "output": "void"
+  },
+  {
+    "name": "read_data",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "offset"
+      ],
+      [
+        "uint32_t",
+        "length"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto o=Offset::make(offset);if(!o)return o.error();auto n=ByteCount::make(length);if(!n)return n.error();",
+    "expression": "read_data(f.value(),o.value(),n.value(),m.value())",
+    "output": "bytes"
+  },
+  {
+    "name": "write_data",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "offset"
+      ],
+      [
+        "const uint8_t*",
+        "data"
+      ],
+      [
+        "size_t",
+        "size"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto o=Offset::make(offset);if(!o)return o.error();auto d=bytes(data,size);if(!d)return d.error();",
+    "expression": "write_data(f.value(),o.value(),d.value(),m.value())",
+    "output": "void"
+  },
+  {
+    "name": "write_record",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "offset"
+      ],
+      [
+        "const uint8_t*",
+        "data"
+      ],
+      [
+        "size_t",
+        "size"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto o=Offset::make(offset);if(!o)return o.error();auto d=bytes(data,size);if(!d)return d.error();",
+    "expression": "write_record(f.value(),o.value(),d.value(),m.value())",
+    "output": "void"
+  },
+  {
+    "name": "read_records",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "first"
+      ],
+      [
+        "uint32_t",
+        "count"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto o=Offset::make(first);if(!o)return o.error();auto n=ByteCount::make(count);if(!n)return n.error();",
+    "expression": "read_records(f.value(),o.value(),n.value(),m.value())",
+    "output": "bytes"
+  },
+  {
+    "name": "update_record",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "record"
+      ],
+      [
+        "uint32_t",
+        "offset"
+      ],
+      [
+        "const uint8_t*",
+        "data"
+      ],
+      [
+        "size_t",
+        "size"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto r=Offset::make(record);if(!r)return r.error();auto o=Offset::make(offset);if(!o)return o.error();auto d=bytes(data,size);if(!d)return d.error();",
+    "expression": "update_record(f.value(),r.value(),o.value(),d.value(),m.value())",
+    "output": "void"
+  },
+  {
+    "name": "credit",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "amount"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();",
+    "expression": "credit(f.value(),amount,m.value())",
+    "output": "void"
+  },
+  {
+    "name": "debit",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "amount"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();",
+    "expression": "debit(f.value(),amount,m.value())",
+    "output": "void"
+  },
+  {
+    "name": "limited_credit",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "amount"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();",
+    "expression": "limited_credit(f.value(),amount,m.value())",
+    "output": "void"
+  },
+  {
+    "name": "get_value",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();",
+    "expression": "get_value(f.value(),m.value())",
+    "output": "int32"
+  },
+  {
+    "name": "commit_transaction",
+    "params": [
+      [
+        "uint32_t",
+        "return_mac"
+      ]
+    ],
+    "convert": "if(return_mac>1)return invalid(\"Return MAC must be boolean\");",
+    "expression": "commit_transaction(return_mac!=0)",
+    "output": "bytes"
+  },
+  {
+    "name": "commit_reader_id",
+    "params": [
+      [
+        "const uint8_t*",
+        "reader_id"
+      ],
+      [
+        "size_t",
+        "size"
+      ]
+    ],
+    "convert": "auto d=bytes(reader_id,size);if(!d)return d.error();",
+    "expression": "commit_reader_id(d.value())",
+    "output": "bytes"
+  },
+  {
+    "name": "create_application",
+    "params": [
+      [
+        "uint32_t",
+        "aid"
+      ],
+      [
+        "uint32_t",
+        "key_settings"
+      ],
+      [
+        "uint32_t",
+        "key_count"
+      ],
+      [
+        "int32_t",
+        "iso_id"
+      ],
+      [
+        "const uint8_t*",
+        "df_name"
+      ],
+      [
+        "size_t",
+        "df_name_size"
+      ]
+    ],
+    "convert": "auto a=ApplicationId::make(aid);if(!a)return a.error();\nif(key_settings>255 || key_count>255 || iso_id < -1 || iso_id>65535)return invalid(\"Invalid application configuration\");\nauto n=bytes(df_name,df_name_size);if(!n)return n.error();\nApplicationConfiguration config{a.value()};config.key_settings=static_cast<Byte>(key_settings);config.number_of_keys=static_cast<Byte>(key_count);\nif(iso_id>=0){config.iso_file_identifiers=true;config.iso_id=static_cast<uint16_t>(iso_id);}config.df_name=Bytes(n.value().begin(),n.value().end());",
+    "expression": "create_application(config)",
+    "output": "void"
+  },
+  {
+    "name": "create_data_file",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "length"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ],
+      [
+        "uint32_t",
+        "access_rights"
+      ],
+      [
+        "int32_t",
+        "iso_id"
+      ],
+      [
+        "uint32_t",
+        "backup"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto access=access_rights_from_c(access_rights);if(!access)return access.error();auto n=ByteCount::make(length);if(!n)return n.error();if(iso_id < -1 || iso_id>65535 || backup>1)return invalid(\"Invalid data file configuration\");DataFileConfiguration config{f.value(),n.value()};config.communication=m.value();config.access=access.value();config.backup=backup!=0;if(iso_id>=0)config.iso_id=static_cast<uint16_t>(iso_id);",
+    "expression": "create_data_file(config)",
+    "output": "void"
+  },
+  {
+    "name": "create_value_file",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "int32_t",
+        "lower_limit"
+      ],
+      [
+        "int32_t",
+        "upper_limit"
+      ],
+      [
+        "int32_t",
+        "initial_value"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ],
+      [
+        "uint32_t",
+        "access_rights"
+      ],
+      [
+        "uint32_t",
+        "limited_credit"
+      ],
+      [
+        "uint32_t",
+        "free_get_value"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto access=access_rights_from_c(access_rights);if(!access)return access.error();if(limited_credit>1||free_get_value>1)return invalid(\"Flags must be boolean\");ValueFileConfiguration config{f.value()};config.lower_limit=lower_limit;config.upper_limit=upper_limit;config.initial_value=initial_value;config.communication=m.value();config.access=access.value();config.limited_credit_enabled=limited_credit!=0;config.free_get_value=free_get_value!=0;",
+    "expression": "create_value_file(config)",
+    "output": "void"
+  },
+  {
+    "name": "create_record_file",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "record_size"
+      ],
+      [
+        "uint32_t",
+        "maximum_records"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ],
+      [
+        "uint32_t",
+        "access_rights"
+      ],
+      [
+        "int32_t",
+        "iso_id"
+      ],
+      [
+        "uint32_t",
+        "cyclic"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto access=access_rights_from_c(access_rights);if(!access)return access.error();auto n=ByteCount::make(record_size);if(!n)return n.error();auto count=ByteCount::make(maximum_records);if(!count)return count.error();if(iso_id < -1 || iso_id>65535 || cyclic>1)return invalid(\"Invalid record configuration\");RecordFileConfiguration config{f.value(),n.value(),count.value()};config.communication=m.value();config.access=access.value();config.cyclic=cyclic!=0;if(iso_id>=0)config.iso_id=static_cast<uint16_t>(iso_id);",
+    "expression": "create_record_file(config)",
+    "output": "void"
+  },
+  {
+    "name": "change_file_settings",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "communication"
+      ],
+      [
+        "uint32_t",
+        "access_rights"
+      ],
+      [
+        "uint32_t",
+        "command_communication"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto m = mode(communication); if (!m) return m.error();auto access=access_rights_from_c(access_rights);if(!access)return access.error();auto policy=mode(command_communication);if(!policy)return policy.error();FileSettingsChange config{f.value()};config.communication=m.value();config.access=access.value();config.command_communication=policy.value();",
+    "expression": "change_file_settings(config)",
+    "output": "void"
+  },
+  {
+    "name": "create_transaction_mac_file",
+    "params": [
+      [
+        "uint32_t",
+        "file"
+      ],
+      [
+        "uint32_t",
+        "access_rights"
+      ],
+      [
+        "const uint8_t*",
+        "key"
+      ],
+      [
+        "size_t",
+        "key_size"
+      ],
+      [
+        "uint32_t",
+        "version"
+      ]
+    ],
+    "convert": "auto f = FileNumber::make(file); if (!f) return f.error();auto access=access_rights_from_c(access_rights);if(!access)return access.error();auto k=bytes(key,key_size);if(!k)return k.error();if(version>255)return invalid(\"Invalid key version\");",
+    "expression": "create_transaction_mac_file(f.value(),access.value(),k.value(),static_cast<Byte>(version))",
+    "output": "void"
+  },
+  {
+    "name": "change_aes_key",
+    "params": [
+      [
+        "uint32_t",
+        "number"
+      ],
+      [
+        "const uint8_t*",
+        "new_key"
+      ],
+      [
+        "size_t",
+        "new_key_size"
+      ],
+      [
+        "uint32_t",
+        "version"
+      ],
+      [
+        "uint32_t",
+        "authenticated_key"
+      ],
+      [
+        "const uint8_t*",
+        "old_key"
+      ],
+      [
+        "size_t",
+        "old_key_size"
+      ],
+      [
+        "int32_t",
+        "key_set"
+      ],
+      [
+        "uint32_t",
+        "picc_master"
+      ]
+    ],
+    "convert": "auto k=KeyNumber::make(number);if(!k)return k.error();auto current=KeyNumber::make(authenticated_key);if(!current)return current.error();auto n=bytes(new_key,new_key_size);if(!n)return n.error();auto old=bytes(old_key,old_key_size);if(!old)return old.error();if(version>255||key_set < -1||key_set>255||picc_master>1)return invalid(\"Invalid key configuration\");std::optional<Byte> ks;if(key_set>=0)ks=static_cast<Byte>(key_set);",
+    "expression": "change_aes_key(k.value(),n.value(),static_cast<Byte>(version),current.value(),old.value(),ks,picc_master!=0)",
+    "output": "void"
+  }
+]

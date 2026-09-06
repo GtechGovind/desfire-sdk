@@ -1,0 +1,96 @@
+name: Scheduled security scan
+
+on:
+  schedule:
+    - cron: "41 3 * * 4"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-security-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: Secrets, dependencies, and source SBOM
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out complete history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate supply-chain policy
+        run: python3 tools/security/check-supply-chain.py
+
+      - name: Verify Gradle dependency artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .security-results
+          ./gradlew -p sdk/kotlin --dependency-verification strict \
+            --no-daemon --no-build-cache dependencies buildEnvironment \
+            | tee .security-results/gradle-kotlin-dependencies.txt
+          ./gradlew -p sdk/android --dependency-verification strict \
+            --no-daemon --no-build-cache dependencies buildEnvironment \
+            | tee .security-results/gradle-android-dependencies.txt
+          python3 tools/security/gradle-dependencies-to-cyclonedx.py \
+            .security-results/gradle-kotlin-dependencies.txt \
+            .security-results/gradle-android-dependencies.txt \
+            --output .security-results/gradle-selected.cdx.json
+
+      - name: Prepare result directory
+        run: mkdir -p .security-results
+
+      - name: Scan Git history for secrets
+        if: always()
+        run: >-
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo
+          zricethezav/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+          git /repo --redact=100 --report-format json
+          --report-path /repo/.security-results/gitleaks.json
+
+      - name: Scan supported package manifests
+        if: always()
+        run: >-
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo
+          ghcr.io/google/osv-scanner-action@sha256:dcd947131d8d11b8d0964de6590661fb921a4ecbd7b90a7cb21083acfc3fd8cc
+          scan source --recursive --allow-no-lockfiles --format json
+          --output-file /repo/.security-results/osv.json /repo
+
+      - name: Generate source SBOM
+        if: always()
+        run: >-
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo
+          anchore/syft@sha256:95fe0835e5bebc6f8b1f8acef68d47d63d594ef4c0f25c097ff853b23cbac74c
+          dir:/repo -o cyclonedx-json=/repo/.security-results/source-sbom.cdx.json
+
+      - name: Scan source SBOM
+        if: always() && hashFiles('.security-results/source-sbom.cdx.json') != ''
+        run: >-
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo
+          anchore/grype@sha256:8a93fc48da96bd6ec5981279d099b69de11541dc68fdf222fb9161f8ff284af7
+          sbom:/repo/.security-results/source-sbom.cdx.json
+          --fail-on high --output json
+          --file /repo/.security-results/grype.json
+
+      - name: Record current Gradle build-tool advisories
+        if: always() && hashFiles('.security-results/gradle-selected.cdx.json') != ''
+        run: >-
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" -w /repo
+          anchore/grype@sha256:8a93fc48da96bd6ec5981279d099b69de11541dc68fdf222fb9161f8ff284af7
+          sbom:/repo/.security-results/gradle-selected.cdx.json
+          --output json --file /repo/.security-results/grype-gradle-selected.json
+
+      - name: Upload redacted security evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: security-scan-${{ github.run_id }}
+          path: .security-results/
+          if-no-files-found: warn
+          retention-days: 30
