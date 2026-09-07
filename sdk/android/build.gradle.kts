@@ -3,8 +3,8 @@ import java.security.MessageDigest
 
 plugins {
     id("com.android.library") version "9.4.0"
-    kotlin("jvm") version "2.3.21" apply false
-    id("org.jetbrains.kotlin.plugin.compose") version "2.3.21" apply false
+    kotlin("jvm") version "2.4.10" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.4.10" apply false
 }
 group = "com.desfire"
 version = "0.1.0"
@@ -45,9 +45,9 @@ android {
 }
 dependencies {
     api(project(":desfire-kotlin"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    androidTestImplementation("androidx.test:runner:1.6.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }
 kotlin { jvmToolchain(17) }
 
