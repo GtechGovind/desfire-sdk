@@ -3,7 +3,7 @@ group = "com.desfire"
 version = "0.1.0"
 repositories { mavenCentral() }
 kotlin { jvmToolchain(17) }
-dependencies { implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1") }
+dependencies { implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0") }
 
 val examples = sourceSets.create("examples") {
     kotlin.srcDir("../../examples/kotlin")
